@@ -1,0 +1,16 @@
+name = "xmake"
+grammar = "lua"
+path_suffixes = ["xmake.lua"]
+line_comments = ["-- "]
+block_comment = ["--[[", "]]"]
+tab_size = 4
+hard_tabs = false
+
+[editor.hover]
+enabled = true
+
+[editor.code_actions]
+enabled = true
+
+[editor.inlay_hints]
+enabled = false

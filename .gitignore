@@ -1,0 +1,15 @@
+# Rust
+/target
+Cargo.lock
+*.pdb
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Zed dev extension testing
+/.zed
