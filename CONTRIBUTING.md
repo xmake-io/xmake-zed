@@ -23,29 +23,20 @@ try to follow these guidelines when you do so.
 * Ensure your edited codes with four spaces instead of TAB.
 * Please commit code to `dev` branch and we will merge into `master` branch in feature
 
-## Install environment
+## Build this project
 
-#### Create empty project
-
-```console
-$ npm install -g yo generator-code
-$ yo code
+```bash
+git clone https://github.com/xmake-io/xmake-zed
+cd xmake-zed
+cargo build --release
 ```
 
-#### Create publisher
+## Run and debug this project
 
-```console
-$ npm install -g vsce
-$ vsce create-publisher (publisher name)
-$ vsce login (publisher name)
-```
-
-#### Build and publish
-
-```console
-$ vsce package
-$ vsce publish [version]
-```
+1. Build the extension
+2. Open Zed
+3. `Cmd+Shift+X` → "Install Dev Extension"
+4. Select the `xmake-zed` directory
 
 ## Financial contributions
 
