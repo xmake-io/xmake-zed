@@ -6,16 +6,17 @@
   <h1>xmake-zed</h1>
 
   <div>
-    <a href="https://zed.dev/extensions/xmake">
-      <img src="https://img.shields.io/zed/plugin/v/xmake-zed.svg?style=flat-square" alt="Version" />
-    </a>
-    <a href="https://zed.dev/extensions/xmake">
-      <img src="https://img.shields.io/zed/plugin/d/xmake-zed.svg?style=flat-square" alt="Downloads" />
-    </a>
-  </div>
-  <div>
     <a href="https://github.com/xmake-io/xmake-zed/blob/main/LICENSE.md">
       <img src="https://img.shields.io/github/license/xmake-io/xmake-zed.svg?colorB=f48041&style=flat-square" alt="license" />
+    </a>
+    <a href="https://www.reddit.com/r/xmake/">
+      <img src="https://img.shields.io/badge/chat-on%20reddit-ff3f34.svg?style=flat-square" alt="Reddit" />
+    </a>
+    <a href="https://t.me/tbooxorg">
+      <img src="https://img.shields.io/badge/chat-on%20telegram-blue.svg?style=flat-square" alt="Telegram" />
+    </a>
+    <a href="https://jq.qq.com/?_wv=1027&k=5hpwWFv">
+      <img src="https://img.shields.io/badge/chat-on%20QQ-ff69b4.svg?style=flat-square" alt="QQ" />
     </a>
     <a href="https://discord.gg/xmake">
       <img src="https://img.shields.io/badge/chat-on%20discord-7289da.svg?style=flat-square" alt="Discord" />
@@ -110,10 +111,6 @@ Create new xmake projects using the built-in tasks:
 1. Open Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
 2. Type "Tasks: Run Task"
 3. Select "xmake: Create project help" to see available options
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/xmake-io/xmake-zed/main/res/project_creation.gif" width="80%" />
-</div>
 
 Example:
 ```bash
@@ -292,21 +289,6 @@ If you're getting glibc version errors, explicitly set your variant:
 ## How to contribute?
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-### Build this project
-
-```bash
-git clone https://github.com/xmake-io/xmake-zed
-cd xmake-zed
-cargo build --release
-```
-
-### Run and debug this project
-
-1. Build the extension
-2. Open Zed
-3. `Cmd+Shift+X` → "Install Dev Extension"
-4. Select the `xmake-zed` directory
 
 ## Resources
 
