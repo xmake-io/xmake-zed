@@ -4,7 +4,7 @@ version = "0.1.0"
 schema_version = 1
 authors = ["Burak Aksoy ornatus_albifrons@proton.me"]
 description = "Full-featured XMake build system support with xmake_ls language server integration, syntax highlighting, and build tasks"
-repository = "https://github.com/jeleferai/xmake-zed"
+repository = "https://github.com/xmake-io/xmake-zed"
 
 [language_servers.xmake-ls]
 name = "xmake_ls"
