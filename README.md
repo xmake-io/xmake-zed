@@ -47,12 +47,6 @@ Please see [xmake-github](https://github.com/xmake-io/xmake) and [website](https
 * Symbol Navigation
 * Project Templates
 
-## Language Server (xmake_ls)
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/xmake-io/xmake-zed/main/res/xmake_ls_demo.png" width="80%" />
-</div>
-
 * **Full LSP Integration**: Complete language server support via [xmake_ls](https://github.com/CppCXY/xmake_ls)
 * **Auto-completion**: Intelligent code completion for XMake APIs
 * **Diagnostics**: Real-time error detection and warnings
