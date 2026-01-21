@@ -1,0 +1,51 @@
+id = "xmake"
+name = "XMake"
+version = "0.1.0"
+schema_version = 1
+authors = ["Burak Aksoy ornatus_albifrons@proton.me"]
+description = "Full-featured XMake build system support with xmake_ls language server integration, syntax highlighting, and build tasks"
+repository = "https://github.com/jeleferai/xmake-zed"
+
+[language_servers.xmake-ls]
+name = "xmake_ls"
+languages = ["xmake"]
+
+[configuration]
+type = "object"
+title = "XMake Settings"
+
+[configuration.properties.linuxVariant]
+type = "string"
+default = "auto"
+description = "Linux binary variant (musl, x64-glibc.2.17, x64, aarch64-glibc.2.17)"
+
+[configuration.properties.logLevel]
+type = "string"
+default = "Info"
+enum = ["Error", "Warning", "Info", "Debug", "Trace"]
+description = "Language server log level"
+
+[configuration.properties.enableDiagnostics]
+type = "boolean"
+default = true
+description = "Enable diagnostic reporting"
+
+[configuration.properties.enableCompletion]
+type = "boolean"
+default = true
+description = "Enable code completion"
+
+[configuration.properties.enableHover]
+type = "boolean"
+default = true
+description = "Enable hover information"
+
+[configuration.properties.enableCodeActions]
+type = "boolean"
+default = true
+description = "Enable code actions and quick fixes"
+
+[configuration.properties.xmakePath]
+type = "string"
+default = ""
+description = "Path to xmake executable (empty for auto-detect)"

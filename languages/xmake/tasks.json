@@ -1,0 +1,1173 @@
+[
+  {
+    "label": "xmake: build (default)",
+    "type": "shell",
+    "command": "xmake",
+    "problemMatcher": [
+      "$gcc"
+    ],
+    "group": {
+      "kind": "build",
+      "isDefault": true
+    },
+    "presentation": {
+      "reveal": "always",
+      "panel": "shared"
+    }
+  },
+  {
+    "label": "xmake: rebuild all",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "clean",
+      "-a",
+      "&&",
+      "xmake"
+    ],
+    "problemMatcher": [
+      "$gcc"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: clean",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "clean"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: build & run",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "&&",
+      "xmake",
+      "run"
+    ],
+    "problemMatcher": [
+      "$gcc"
+    ],
+    "group": {
+      "kind": "test",
+      "isDefault": true
+    }
+  },
+  {
+    "label": "xmake: verbose build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "-v"
+    ],
+    "problemMatcher": [
+      "$gcc"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: configure menu",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--menu"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: debug mode",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-m",
+      "debug"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: release mode",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-m",
+      "release"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: minsizerel mode",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-m",
+      "minsizerel"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: relwithdebinfo mode",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-m",
+      "relwithdebinfo"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: install",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "install",
+      "-o",
+      "install"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: package",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "package"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: format",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "format"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: generate compile_commands.json",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "project",
+      "-k",
+      "compile_commands"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: generate Visual Studio project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "project",
+      "-k",
+      "vs2022"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: generate Xcode project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "project",
+      "-k",
+      "xcode"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (C) GCC toolchain",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--toolchain=gcc",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (C) Clang toolchain",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--toolchain=clang",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (C) MSVC toolchain",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--toolchain=msvc",
+      "--vs=2022",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (C) MSVC VS 2019",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--toolchain=msvc",
+      "--vs=2019",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Rust) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=rust",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Zig) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--toolchain=@zig",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Zig) Cross-compile Windows",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--toolchain=zig",
+      "-p",
+      "windows",
+      "-a",
+      "x86",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Go) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=go",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Swift) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=swift",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (CUDA) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=cuda",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Fortran) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=fortran",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Platform Linux x86_64",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "linux",
+      "-a",
+      "x86_64",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Platform Linux ARM64",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "linux",
+      "-a",
+      "arm64",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Platform Linux ARM32",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "linux",
+      "-a",
+      "arm",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Platform Windows x64",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "windows",
+      "-a",
+      "x64",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Platform Windows x86",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "windows",
+      "-a",
+      "x86",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Platform Windows ARM64",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "windows",
+      "-a",
+      "arm64",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Platform macOS x86_64",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "macosx",
+      "-a",
+      "x86_64",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Platform macOS ARM64",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "macosx",
+      "-a",
+      "arm64",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Cross-compile ARM64 (GCC)",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "linux",
+      "-a",
+      "arm64",
+      "--toolchain=gcc",
+      "--cc=aarch64-linux-gnu-gcc",
+      "--cxx=aarch64-linux-gnu-g++",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Cross-compile ARM32 (GCC)",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "linux",
+      "-a",
+      "arm",
+      "--toolchain=gcc",
+      "--cc=arm-linux-gnueabihf-gcc",
+      "--cxx=arm-linux-gnueabihf-g++",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Cross-compile RISC-V",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "linux",
+      "-a",
+      "riscv64",
+      "--toolchain=gcc",
+      "--cc=riscv64-unknown-elf-gcc",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Android ARM64 NDK",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "android",
+      "-a",
+      "arm64-v8a",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Android ARM32 NDK",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "android",
+      "-a",
+      "armeabi-v7a",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: iOS ARM64",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "iphoneos",
+      "-a",
+      "arm64",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: iOS Simulator",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "iphoneos",
+      "-a",
+      "x86_64",
+      "--appledev=simulator",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: WebAssembly (Emscripten)",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "wasm",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: MinGW Cross-compile",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "mingw",
+      "--toolchain=mingw",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: C++20 Standard",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--cxxstd=c++20",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: C++23 Standard",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--cxxstd=c++23",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Enable LTO",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--enable-lto",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Enable ASAN",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--enable-asan",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Enable TSAN",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--enable-tsan",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Show configuration",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "show"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Show targets",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "show",
+      "-l"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Show rules",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "show",
+      "-r"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Help",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "-h"
+    ],
+    "presentation": {
+      "reveal": "always"
+    },
+    "group": "build"
+  },
+  {
+    "label": "xmake: Version",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "--version"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (D) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=d",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Vala) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=vala",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Wasm/Emscripten) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-p",
+      "wasm",
+      "--toolchain=emcc",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Objective-C) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=objc",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (Objective-C++) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=objcxx",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: (D lang) Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--language=dlang",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Enable LTO",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--enable-lto",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Enable ASAN",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--enable-asan",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Enable TSAN",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--enable-tsan",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Enable UBSAN",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--enable-ubsan",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Enable Memory Sanitizer",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--enable-msan",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: With Unity Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--unity",
+      "on",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: With Unity Build (4 files)",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--unity",
+      "on",
+      "--unity_size",
+      "4",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Without Unity Build",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--unity",
+      "off",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: With Precompiled Header",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--pcheaders",
+      "on",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Disable Precompiled Header",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--pcheaders",
+      "off",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Build with Mold linker",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--ld=mold",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Build with LLD linker",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--ld=lld",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Build with Gold linker",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "--ld=gold",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Set build directory",
+    "type": "shell",
+    "command": "sh",
+    "args": [
+      "config",
+      "-o",
+      "build",
+      "-y"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Clean configuration",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "config",
+      "-c"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: List packages",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "require",
+      "-l"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Update packages",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "require",
+      "-u"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create project help",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "--help"
+    ],
+    "presentation": {
+      "reveal": "always"
+    },
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create C project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "c",
+      "-t",
+      "console",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create C++ project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "c++",
+      "-t",
+      "console",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create Rust project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "rust",
+      "-t",
+      "console",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create Zig project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "zig",
+      "-t",
+      "console"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create Go project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "go",
+      "-t",
+      "console",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create D project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "dlang",
+      "-t",
+      "console",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create Swift project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "swift",
+      "-t",
+      "console",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create Fortran project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "fortran",
+      "-t",
+      "console",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create C static library",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "c",
+      "-t",
+      "static",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create C++ static library",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "c++",
+      "-t",
+      "static",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create C shared library",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "c",
+      "-t",
+      "shared",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create C++ shared library",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "c++",
+      "-t",
+      "shared",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create Qt project",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "c++",
+      "-t",
+      "qt.console",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create Qt widget app",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "c++",
+      "-t",
+      "qt.widgetapp",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create iOS app",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "objc",
+      "-t",
+      "xcode.iosapp",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create macOS app",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "objc",
+      "-t",
+      "xcode.macapp",
+      "$argv"
+    ],
+    "group": "build"
+  },
+  {
+    "label": "xmake: Create macOS framework",
+    "type": "shell",
+    "command": "xmake",
+    "args": [
+      "create",
+      "-l",
+      "objc",
+      "-t",
+      "xcode.framework",
+      "$argv"
+    ],
+    "group": "build"
+  }
+]
