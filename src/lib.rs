@@ -294,84 +294,38 @@ mod tests {
     }
 
     #[test]
-    fn workspace_install_embeds_the_templates() {
+    fn shipped_tasks_include_the_debug_build() {
         let tasks: Vec<serde_json::Value> =
             serde_json::from_str(include_str!("../languages/xmake/tasks.json")).unwrap();
-        let install = tasks
-            .iter()
-            .find(|task| task["label"] == "xmake: install workspace tasks")
-            .unwrap();
-        let script = install["args"][2].as_str().unwrap();
-        let workspace_tasks = include_str!("../resources/workspace-tasks.json").trim();
-        let workspace_debug = include_str!("../resources/workspace-debug.json").trim();
-        assert!(script.contains(workspace_tasks));
-        assert!(script.contains(workspace_debug));
-        // Zed expands `$ZED_WORKTREE_ROOT` in task args before xmake runs.
-        // The installer must assemble that name itself.
-        assert!(!script.contains("$ZED_WORKTREE_ROOT"));
-        assert!(script.contains("'$' .. 'ZED_WORKTREE_ROOT'"));
-
+        assert!(
+            tasks
+                .iter()
+                .all(|task| task["label"] != "xmake: install workspace tasks")
+        );
         let debug = tasks
             .iter()
             .find(|task| task["label"] == "xmake: debug")
             .unwrap();
         assert_eq!(debug["args"][2], crate::invocation::DEBUG_BUILD_SNIPPET);
-
-        let workspace: Vec<serde_json::Value> = serde_json::from_str(workspace_tasks).unwrap();
-        let installed_debug = workspace
-            .iter()
-            .find(|task| task["label"] == "xmake: debug")
-            .unwrap();
-        assert_eq!(
-            installed_debug["args"][2],
-            crate::invocation::DEBUG_BUILD_SNIPPET
-        );
-        let installed_terminal = workspace
+        let terminal = tasks
             .iter()
             .find(|task| task["label"] == "xmake: debug in terminal")
             .unwrap();
         assert_eq!(
-            installed_terminal["args"][2],
+            terminal["args"][2],
             crate::invocation::TERMINAL_DEBUG_SNIPPET
         );
-
-        let example = include_str!("../debug.json.example").trim();
-        let expected = workspace_debug.replace("@CWD@", "$ZED_WORKTREE_ROOT");
-        assert_eq!(example, expected.trim());
-
-        assert_eq!(
-            include_str!("../resources/zed-tasks.json"),
-            include_str!("../languages/xmake/tasks.json")
-        );
-        let global: Vec<serde_json::Value> =
-            serde_json::from_str(include_str!("../resources/zed-tasks.json")).unwrap();
-        let global_labels: Vec<_> = global
-            .iter()
-            .map(|task| task["label"].as_str().unwrap())
-            .filter(|label| *label != "xmake: install workspace tasks")
-            .collect();
-        let workspace_labels: Vec<_> = workspace
-            .iter()
-            .map(|task| task["label"].as_str().unwrap())
-            .collect();
-        assert_eq!(global_labels, workspace_labels);
     }
 
-    /// `xmake lua -c <script>` is one argv. xmake parses an argument that
-    /// starts with `-` as an option, before it ever runs the script.
-    /// Zed also expands `$ZED_*` in task args before xmake starts.
+    /// Zed's task terminal concatenates args with `build_no_quote`, so zsh
+    /// parses the Lua unless the script is already one single-quoted word.
+    /// xmake also treats a `-c` script that starts with `-` as an option, and
+    /// Zed expands `$ZED_*` in the task arg before either of them runs.
     #[test]
     fn lua_c_scripts_are_safe_to_pass_as_argv() {
-        let files = [
-            include_str!("../languages/xmake/tasks.json"),
-            include_str!("../resources/workspace-tasks.json"),
-            include_str!("../resources/workspace-debug.json"),
-            include_str!("../debug.json.example"),
-        ];
-        for file in files {
-            let value: serde_json::Value = serde_json::from_str(file).unwrap();
-            check_lua_c_scripts(&value);
-        }
+        let tasks: serde_json::Value =
+            serde_json::from_str(include_str!("../languages/xmake/tasks.json")).unwrap();
+        check_lua_c_scripts(&tasks);
         let locator = include_str!("../resources/find-binary.lua").trim();
         assert!(!locator.starts_with('-'));
         assert!(!locator.contains("$ZED_"));
@@ -398,13 +352,22 @@ mod tests {
                         && matches!(flag, Some("-c") | Some("--command"))
                     {
                         let body = script.trim();
-                        assert!(!body.is_empty(), "empty xmake lua -c script");
+                        let inner = body
+                            .strip_prefix('\'')
+                            .and_then(|rest| rest.strip_suffix('\''))
+                            .filter(|inner| !inner.is_empty() && !inner.contains('\''));
                         assert!(
-                            !body.starts_with('-'),
-                            "xmake treats this -c script as an option: {body}"
+                            inner.is_some(),
+                            "lua -c script must be one single-quoted shell word, got {:?}",
+                            body.chars().take(80).collect::<String>()
+                        );
+                        let inner = inner.unwrap();
+                        assert!(
+                            !inner.starts_with('-'),
+                            "xmake treats this -c script as an option"
                         );
                         assert!(
-                            !body.contains("$ZED_"),
+                            !inner.contains("$ZED_"),
                             "Zed would expand $ZED_ in this -c script before xmake runs"
                         );
                     }

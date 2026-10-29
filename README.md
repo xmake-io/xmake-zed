@@ -40,7 +40,7 @@ See the [xmake repository](https://github.com/xmake-io/xmake) and the [website](
 ## Features
 
 * Language Server (xmake_ls)
-* Syntax Highlighting (300+ functions)
+* Syntax highlighting for the xmake APIs
 * Code Intelligence
 * Symbol Navigation
 * Build, run, and debug tasks
@@ -48,18 +48,10 @@ See the [xmake repository](https://github.com/xmake-io/xmake) and the [website](
 * `compile_commands.json` generation into `.zed/`
 * Project Templates
 
-* **Full LSP Integration**: Complete language server support via [xmake_ls](https://github.com/CppCXY/xmake_ls)
-* **Auto-completion**: Intelligent code completion for XMake APIs
-* **Diagnostics**: Real-time error detection and warnings
-* **Hover Information**: Documentation on hover
-* **Code Actions**: Quick fixes and refactoring support
-* **Go to Definition**: Navigate to symbol definitions
-* **Find References**: Locate all usages of symbols
-* **Document Symbols**: Outline of targets, options, rules, tasks
-* **Workspace Symbols**: Search across all xmake.lua files
-* **Formatting**: Document and range formatting support
+* **Language server**: [xmake_ls](https://github.com/CppCXY/xmake_ls), started when an `xmake.lua` file is open. It provides completion, diagnostics, hover, go to definition, and find references for xmake.lua
+* **Outline**: tree-sitter symbols for targets, options, rules, and tasks
 
-## Syntax Highlighting (300+ functions)
+## Syntax highlighting
 
 * **Target APIs**: target, set_kind, set_version, set_description, set_default
 * **File APIs**: add_files, add_headerfiles, add_installfiles, remove_files
@@ -88,16 +80,14 @@ See the [xmake repository](https://github.com/xmake-io/xmake) and the [website](
 
 ## Installation
 
-1. Open the extension view with `Cmd+Shift+X` (macOS) or `Ctrl+Shift+X` (Linux/Windows).
+1. Open the command palette and run `zed: extensions`.
 2. Search for XMake and install it.
 
 Opening `xmake.lua` downloads xmake_ls. Syntax highlighting uses the Lua grammar shipped with this extension. A separate Lua extension is not required.
 
 ## Tasks
 
-Zed shows tasks in `task: spawn`, not in the command palette. On startup this extension merges its tasks into Zed's global `tasks.json` (`~/.config/zed/tasks.json` on macOS and Linux, `%APPDATA%\Zed\tasks.json` on Windows). They then appear in every project, from a C or C++ file, without opening `xmake.lua`. Tasks that are not named `xmake: …` are left alone. This runs after Zed is allowed to execute `xmake`; restart Zed once that permission is granted.
-
-`xmake: install workspace tasks` writes the same list into the current project's `.zed/tasks.json`, and writes `.zed/debug.json` only when that file is missing. Delete `.zed/debug.json` and run the install task again to refresh an older debug scenario.
+Zed shows tasks in `task: spawn`, not in the command palette. On startup this extension merges its tasks into Zed's global `tasks.json` (`~/.config/zed/tasks.json` on macOS and Linux, `%APPDATA%\Zed\tasks.json` on Windows). They then appear in every project, from a C or C++ file, without opening `xmake.lua`. Tasks that are not named `xmake: …` are left alone. This runs after Zed is allowed to execute `xmake`; restart Zed once that permission is granted. The extension does not write a tasks file into the project.
 
 Optional keybinding in `~/.config/zed/keymap.json`:
 
@@ -121,7 +111,6 @@ Useful tasks:
 | `xmake: debug` | configure debug mode, then build |
 | `xmake: debug in terminal` | debug build, then `xmake run -d` (lldb/gdb in the terminal) |
 | `xmake: generate compile_commands` | write `.zed/compile_commands.json` for clangd |
-| `xmake: install workspace tasks` | copy tasks into `.zed/tasks.json` |
 
 Create tasks are listed under [Creating a project](#creating-a-project).
 
@@ -149,15 +138,13 @@ On macOS, CodeLLDB is told that `/tmp` and `/var` are `/private/tmp` and `/priva
 
 1. Set breakpoints in the program source.
 2. Run `debugger: start` (`debugger::Start`). The `xmake.lua` buffer does not need to be open.
-3. Pick **xmake: debug current target**. That entry comes from `.zed/debug.json`. The install task writes it, or you can copy [debug.json.example](debug.json.example). The scenario has no `program` field on purpose. Zed asks the locator for the binary after the debug build finishes.
-
-**xmake: debug**, **xmake: build**, and **xmake: run** appear in that same list after workspace tasks are installed. Until then, those names exist only while `xmake.lua` is the active file.
+3. Pick **xmake: debug**, **xmake: build**, or **xmake: run**.
 
 `xmake: debug in terminal` uses xmake's own `xmake run -d` (system lldb/gdb/windbg) instead of the Zed debug adapter. It does not appear in the Zed debugger list.
 
 ## IntelliSense (`compile_commands.json`)
 
-**xmake: generate compile_commands** writes `compile_commands.json` to `.zed/` (gitignore that folder, same idea as VSCode's `.vscode/`) and creates a `.clangd` file if you do not already have one:
+**xmake: generate compile_commands** runs `xmake project -k compile_commands --lsp=clangd .zed`. That writes `.zed/compile_commands.json`. Ignore that file. The task also creates a `.clangd` file if you do not already have one:
 
 ```yaml
 CompileFlags:
@@ -266,8 +253,7 @@ Linux users can choose their preferred binary variant. Add to your Zed settings:
 * **Don't know?** Leave `linuxVariant` as `auto` (x86_64 → `x64-glibc.2.17`, ARM64 → `aarch64-glibc.2.17`)
 * **Alpine Linux, containers:** Use `musl`
 * **RISC-V:** Set `linuxVariant` to `riscv64` (`auto` does not pick RISC-V)
-* **Older distros:** Use `*-glibc.2.17` variants
-* **Latest distros:** Use `x64` or `aarch64`
+* **Newer x86_64 distros:** Use `x64`
 
 ## Binary Detection Priority
 
@@ -306,6 +292,22 @@ Remove-Item -Recurse -Force "$env:LOCALAPPDATA\Zed\extensions\work\xmake"
 ### Build succeeds, debugger says no locator completed
 
 The build task runs in the terminal. The locator runs inside the extension and is refused until `process:exec` for `xmake` is granted. Add the settings block in [Debugging](#debugging) and restart Zed.
+
+### Lua extension warns about `add_rules`
+
+`xmake.lua` ends in `.lua`. With the Lua extension installed, Zed hands that file to LuaLS, which reports `Undefined global` for `add_rules`, `target`, and the rest of the xmake API. Ordinary `.lua` files should stay on Lua. Add this to Zed settings so only `xmake.lua` stays on this extension:
+
+```json
+"file_types": {
+  "xmake": ["/**/xmake.lua", "?:/**/xmake.lua"]
+}
+```
+
+Reload Zed after saving the settings.
+
+### A build with several languages stops on one missing compiler
+
+Projects created in the same folder are linked with `includes`, so `xmake` and `xmake run` build every target. `error: cannot get program for cs` means xmake did not find `csc`. Having `dotnet` on `PATH` is not enough. `xmake: Clang toolchain` only saves clang as the C/C++ toolchain (`xmake f --toolchain=clang -y`). It does not install a C# compiler.
 
 ### Language Server Not Starting
 

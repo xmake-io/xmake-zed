@@ -3,6 +3,7 @@ grammar = "lua"
 path_suffixes = ["xmake.lua"]
 line_comments = ["-- "]
 block_comment = ["--[[", "]]"]
+debuggers = ["CodeLLDB", "GDB", "LLDB"]
 tab_size = 4
 hard_tabs = false
 
