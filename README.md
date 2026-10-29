@@ -141,6 +141,8 @@ Create-project tasks use a default name (`myproject`). Edit it in the `task: spa
 
 Zed's built-in C/C++ adapters (CodeLLDB, GDB) are used. This extension registers an **xmake debug locator**. It turns an `xmake` build or `xmake run` task into a debug session: the build runs first, then Zed launches the binary reported by `target:targetfile()`.
 
+Zed blocks that second step until the extension is allowed to run `xmake`. `extension.toml` declares `process:exec` for `xmake`. Grant it in Zed settings under `extension.granted_extension_capabilities` with `command` `xmake` and `args` `["**"]`, then restart Zed. Without that grant the build still succeeds and the debugger reports that no locator completed.
+
 `xmake: debug` is the task that matches "compile in debug mode and debug inside Zed". It runs `xmake f -m debug -y`, builds, and hands the binary to CodeLLDB or GDB. `xmake run <target> -- args` is the same flow for one target: the build step becomes `xmake build <target>`, and the arguments after the target are passed to the program. The program starts in the target's `set_rundir`, or in the binary's directory when that is unset. `xmake run -w <dir>` overrides it. A named target whose binary is not on disk is not replaced with a different target.
 
 1. Set breakpoints in your C/C++ source
