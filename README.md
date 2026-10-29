@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://xmake.io">
-    <img width="200" heigth="200" src="https://github.com/xmake-io/xmake-idea/raw/master/res/logo256.png">
+    <img width="200" height="200" src="https://github.com/xmake-io/xmake-idea/raw/master/res/logo256.png">
   </a>
 
   <h1>xmake-zed</h1>
@@ -31,11 +31,11 @@
 
 ## Introduction
 
-A XMake integration for Zed editor with automatic LSP installation, comprehensive syntax highlighting, and build tasks.
+A XMake integration for Zed editor with automatic LSP installation, syntax highlighting, build tasks, and in-editor debugging.
 
-It is deeply integrated with [xmake](https://github.com/xmake-io/xmake) and Zed editor to provide a convenient and fast cross-platform c/c++ development and building.
+It is deeply integrated with [xmake](https://github.com/xmake-io/xmake) and Zed editor to provide a convenient and fast cross-platform C/C++ development and building.
 
-You need install [xmake](https://github.com/xmake-io/xmake) first and a project with `xmake.lua`.
+Install [xmake](https://github.com/xmake-io/xmake) first and open a project with `xmake.lua`.
 
 Please see [xmake-github](https://github.com/xmake-io/xmake) and [website](https://xmake.io) if you want to known more about xmake.
 
@@ -45,6 +45,9 @@ Please see [xmake-github](https://github.com/xmake-io/xmake) and [website](https
 * Syntax Highlighting (300+ functions)
 * Code Intelligence
 * Symbol Navigation
+* Build, run, and debug tasks
+* DAP locator for CodeLLDB / GDB
+* `compile_commands.json` generation into `.zed/`
 * Project Templates
 
 * **Full LSP Integration**: Complete language server support via [xmake_ls](https://github.com/CppCXY/xmake_ls)
@@ -80,7 +83,7 @@ Please see [xmake-github](https://github.com/xmake-io/xmake) and [website](https
 | macOS | x64 (Intel) | ✅ |
 | Linux | x64 | ✅ |
 | Linux | ARM64 | ✅ |
-| Linux | RISC-V | ✅ (musl) |
+| Linux | RISC-V | set `linuxVariant` to `riscv64` |
 | Windows | x64 | ✅ |
 | Windows | ARM64 | ✅ |
 | Windows | x86 (32-bit) | ✅ |
@@ -98,13 +101,86 @@ Please see [xmake-github](https://github.com/xmake-io/xmake) and [website](https
 
 The XMake extension will automatically download and install the xmake_ls language server when you open an `xmake.lua` file.
 
+## Tasks
+
+Zed language tasks appear in `task: spawn` (not as Command Palette actions). Extension tasks are scoped to `xmake.lua`. To use them from a `.cpp` buffer:
+
+1. Open `xmake.lua`
+2. Run `task: spawn`
+3. Choose **xmake: install workspace tasks**
+
+That writes `.zed/tasks.json` (and `.zed/debug.json` if it does not already exist). After that, `task: spawn` lists xmake build, run, and debug tasks from any file in the project. Delete `.zed/debug.json` and run the install task again to refresh a debug scenario created by an older version.
+
+Optional keybinding in `~/.config/zed/keymap.json`:
+
+```json
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-shift-b": ["task::Spawn", { "task_name": "xmake: build" }]
+    }
+  }
+]
+```
+
+Useful tasks:
+
+| Task | What it runs |
+|------|----------------|
+| `xmake: build` | `xmake` |
+| `xmake: run` | `xmake run` |
+| `xmake: debug` | configure debug mode, then build |
+| `xmake: debug in terminal` | debug build, then `xmake run -d` (lldb/gdb in the terminal) |
+| `xmake: generate compile_commands` | write `.zed/compile_commands.json` for clangd |
+| `xmake: install workspace tasks` | copy tasks into `.zed/tasks.json` |
+
+Create-project tasks use a default name (`myproject`). Edit it in the `task: spawn` modal before running (Tab / `opt-enter`).
+
+## Debugging
+
+Zed's built-in C/C++ adapters (CodeLLDB, GDB) are used. This extension registers an **xmake debug locator**. It turns an `xmake` build or `xmake run` task into a debug session: the build runs first, then Zed launches the binary reported by `target:targetfile()`.
+
+`xmake: debug` is the task that matches "compile in debug mode and debug inside Zed". It runs `xmake f -m debug -y`, builds, and hands the binary to CodeLLDB or GDB. `xmake run <target> -- args` is the same flow for one target: the build step becomes `xmake build <target>`, and the arguments after the target are passed to the program. The program starts in the target's `set_rundir`, or in the binary's directory when that is unset. `xmake run -w <dir>` overrides it. A named target whose binary is not on disk is not replaced with a different target.
+
+1. Set breakpoints in your C/C++ source
+2. Run `debugger: start` (`debugger::Start`)
+3. Pick **xmake: debug**, **xmake: build**, or **xmake: run**. From a `.cpp` file, install workspace tasks once so those entries exist, or pick **xmake: debug current target**
+
+You can also copy [debug.json.example](debug.json.example) to `.zed/debug.json`. That scenario has no `program` field on purpose. Zed asks the locator for the binary after the debug build finishes.
+
+`xmake: debug in terminal` uses xmake's own `xmake run -d` (system lldb/gdb/windbg) instead of the Zed debug adapter. It does not appear in the Zed debugger list.
+
+## IntelliSense (`compile_commands.json`)
+
+**xmake: generate compile_commands** writes `compile_commands.json` to `.zed/` (gitignore that folder, same idea as VSCode's `.vscode/`) and creates a `.clangd` file if you do not already have one:
+
+```yaml
+CompileFlags:
+  CompilationDatabase: .zed
+```
+
+If you already manage clangd yourself, set:
+
+```json
+{
+  "lsp": {
+    "clangd": {
+      "binary": {
+        "arguments": ["--compile-commands-dir=.zed"]
+      }
+    }
+  }
+}
+```
+
 ## Quick Start: Creating Projects
 
 Create new xmake projects using the built-in tasks:
 
-1. Open Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
-2. Type "Tasks: Run Task"
-3. Select "xmake: Create project help" to see available options
+1. Open `xmake.lua` so the xmake language is active
+2. Open `task: spawn` (`task::Spawn`)
+3. Select "xmake: create project help" or a create-project task (`xmake: create C++ console`, …)
 
 Example:
 ```bash
@@ -192,7 +268,7 @@ Linux users can choose their preferred binary variant. Add to your Zed settings:
   "lsp": {
     "xmake-ls": {
       "settings": {
-        "linux_variant": "musl"
+        "linuxVariant": "musl"
       }
     }
   }
@@ -210,8 +286,9 @@ Linux users can choose their preferred binary variant. Add to your Zed settings:
 | `riscv64` | RISC-V architecture | RISC-V hardware |
 
 **Variant Selection Guide:**
-* **Don't know?** Use default (auto-selected based on architecture)
+* **Don't know?** Leave `linuxVariant` as `auto` (x86_64 → `x64-glibc.2.17`, ARM64 → `aarch64-glibc.2.17`)
 * **Alpine Linux, containers:** Use `musl`
+* **RISC-V:** Set `linuxVariant` to `riscv64` (`auto` does not pick RISC-V)
 * **Older distros:** Use `*-glibc.2.17` variants
 * **Latest distros:** Use `x64` or `aarch64`
 
@@ -220,7 +297,7 @@ Linux users can choose their preferred binary variant. Add to your Zed settings:
 The extension checks for xmake_ls in the following order:
 
 1. **Custom path** from Zed settings (highest priority)
-2. **System installation** via PATH (`which xmake_ls`)
+2. **System installation** on the worktree PATH (`xmake_ls` / `xmake_ls.exe`)
 3. **Cached download** from previous extension installation
 4. **Auto-download** from GitHub releases (with platform/variant detection)
 
@@ -273,7 +350,7 @@ If you're getting glibc version errors, explicitly set your variant:
   "lsp": {
     "xmake-ls": {
       "settings": {
-        "linux_variant": "musl"
+        "linuxVariant": "musl"
       }
     }
   }

@@ -1,0 +1,61 @@
+[
+  {
+    "label": "xmake: build",
+    "command": "xmake",
+    "cwd": "@CWD@",
+    "reveal": "always"
+  },
+  {
+    "label": "xmake: clean",
+    "command": "xmake",
+    "args": ["clean"],
+    "cwd": "@CWD@"
+  },
+  {
+    "label": "xmake: run",
+    "command": "xmake",
+    "args": ["run"],
+    "cwd": "@CWD@",
+    "reveal": "always"
+  },
+  {
+    "label": "xmake: debug",
+    "command": "xmake",
+    "args": [
+      "lua",
+      "-c",
+      "os.execv('xmake', {'f', '-m', 'debug', '-y'}); os.execv('xmake', {})"
+    ],
+    "cwd": "@CWD@",
+    "reveal": "always"
+  },
+  {
+    "label": "xmake: debug in terminal",
+    "command": "xmake",
+    "args": [
+      "lua",
+      "-c",
+      "os.execv('xmake', {'f', '-m', 'debug', '-y'}); os.execv('xmake', {}); os.execv('xmake', {'run', '-d'})"
+    ],
+    "cwd": "@CWD@",
+    "reveal": "always"
+  },
+  {
+    "label": "xmake: generate compile_commands",
+    "command": "xmake",
+    "args": [
+      "lua",
+      "-c",
+      "os.mkdir('.zed'); os.execv('xmake', {'project', '-k', 'compile_commands', '--lsp=clangd', '.zed'}); if not os.isfile('.clangd') then io.writefile('.clangd', 'CompileFlags:\\n  CompilationDatabase: .zed\\n') end"
+    ],
+    "cwd": "@CWD@",
+    "reveal": "always"
+  },
+  {
+    "label": "xmake: show targets",
+    "command": "xmake",
+    "args": ["show", "-l", "targets"],
+    "cwd": "@CWD@",
+    "reveal": "always"
+  }
+]

@@ -1,14 +1,16 @@
 id = "xmake"
 name = "XMake"
-version = "0.1.0"
+version = "0.2.0"
 schema_version = 1
 authors = ["Burak Aksoy ornatus_albifrons@proton.me"]
-description = "Full-featured XMake build system support with xmake_ls language server integration, syntax highlighting, and build tasks"
+description = "XMake support for Zed: xmake_ls, syntax highlighting, build tasks, and debug locators"
 repository = "https://github.com/xmake-io/xmake-zed"
 
 [language_servers.xmake-ls]
 name = "xmake_ls"
 languages = ["xmake"]
+
+[debug_locators.xmake]
 
 [configuration]
 type = "object"
@@ -17,7 +19,8 @@ title = "XMake Settings"
 [configuration.properties.linuxVariant]
 type = "string"
 default = "auto"
-description = "Linux binary variant (musl, x64-glibc.2.17, x64, aarch64-glibc.2.17)"
+enum = ["auto", "musl", "x64-glibc.2.17", "x64", "aarch64-glibc.2.17", "riscv64"]
+description = "Linux xmake_ls binary variant. Use auto to pick from architecture (x64-glibc.2.17 or aarch64-glibc.2.17)."
 
 [configuration.properties.logLevel]
 type = "string"
@@ -48,7 +51,7 @@ description = "Enable code actions and quick fixes"
 [configuration.properties.xmakePath]
 type = "string"
 default = ""
-description = "Path to xmake executable (empty for auto-detect)"
+description = "Path to the xmake executable passed through to xmake_ls. Leave empty and xmake_ls searches PATH. Zed tasks and the debug locator run the `xmake` found on PATH."
 
 [grammars.lua]
 repository = "https://github.com/tree-sitter-grammars/tree-sitter-lua"

@@ -1,27 +1,9 @@
-; XMake text objects
-; Enables selecting code blocks like functions, targets, tasks, etc.
+; Text objects use Zed's capture names (around / inside).
 
-; Select entire function definition
-(function_definition) @function.outer
+(function_definition
+  body: (_) @function.inside) @function.around
 
-; Select entire function declaration
-(function_declaration) @function.outer
+(function_declaration
+  body: (_) @function.inside) @function.around
 
-; Select if statement block
-(if_statement) @conditional.outer
-
-; Select loop statement blocks
-(do_statement) @repeat.outer
-(while_statement) @repeat.outer
-(for_statement) @repeat.outer
-(repeat_statement) @repeat.outer
-
-; Select table constructors
-(table_constructor) @constructor.outer
-
-; Select function call arguments
-(arguments) @parameter.outer
-
-; Select table fields
-(table_constructor
-  (field) @property.outer)
+(comment)+ @comment.around
