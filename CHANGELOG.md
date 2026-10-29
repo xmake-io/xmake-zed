@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2
+
+- Only `xmake.lua` is associated by file name. Other `.lua` files in that project are associated after `.zed/settings.json` is written.
+- Leave an existing `.zed/settings.json` unchanged when it is not plain JSON, including files that contain `//` inside strings.
+
 ## 0.3.1
 
 - In a project that contains `xmake.lua`, every `.lua` file uses this extension's Lua language. The extension records that in the project's `.zed/settings.json`.
