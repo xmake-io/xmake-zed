@@ -1,6 +1,7 @@
 use std::fs;
 use zed_extension_api::{
     self as zed, DebugRequest, DebugScenario, LanguageServerId, Result, TaskTemplate, Worktree,
+    process::Command as ProcessCommand,
     serde_json::{self, Value},
     settings::LspSettings,
 };
@@ -10,6 +11,28 @@ mod locator;
 
 struct XMakeExtension {
     cached_binary_path: Option<String>,
+}
+
+const GLOBAL_TASKS_TEMPLATE: &str = include_str!("../resources/install-global-tasks.lua");
+const SHIPPED_TASKS: &str = include_str!("../languages/xmake/tasks.json");
+
+fn global_tasks_script() -> String {
+    GLOBAL_TASKS_TEMPLATE.replace("@TASKS@", SHIPPED_TASKS.trim())
+}
+
+/// Copy the shipped tasks into Zed's global tasks.json so they show up from
+/// any file, for anyone who installed the extension. xmake tasks are replaced;
+/// every other task in that file is left in place.
+fn install_global_tasks() {
+    let script = global_tasks_script();
+    if script.trim_start().starts_with('-') {
+        return;
+    }
+    let _ = ProcessCommand::new("xmake")
+        .arg("lua")
+        .arg("-c")
+        .arg(script.trim())
+        .output();
 }
 
 impl XMakeExtension {
@@ -71,6 +94,7 @@ impl XMakeExtension {
 
 impl zed::Extension for XMakeExtension {
     fn new() -> Self {
+        install_global_tasks();
         Self {
             cached_binary_path: None,
         }
@@ -314,6 +338,23 @@ mod tests {
         let example = include_str!("../debug.json.example").trim();
         let expected = workspace_debug.replace("@CWD@", "$ZED_WORKTREE_ROOT");
         assert_eq!(example, expected.trim());
+
+        assert_eq!(
+            include_str!("../resources/zed-tasks.json"),
+            include_str!("../languages/xmake/tasks.json")
+        );
+        let global: Vec<serde_json::Value> =
+            serde_json::from_str(include_str!("../resources/zed-tasks.json")).unwrap();
+        let global_labels: Vec<_> = global
+            .iter()
+            .map(|task| task["label"].as_str().unwrap())
+            .filter(|label| *label != "xmake: install workspace tasks")
+            .collect();
+        let workspace_labels: Vec<_> = workspace
+            .iter()
+            .map(|task| task["label"].as_str().unwrap())
+            .collect();
+        assert_eq!(global_labels, workspace_labels);
     }
 
     /// `xmake lua -c <script>` is one argv. xmake parses an argument that
@@ -334,6 +375,14 @@ mod tests {
         let locator = include_str!("../resources/find-binary.lua").trim();
         assert!(!locator.starts_with('-'));
         assert!(!locator.contains("$ZED_"));
+
+        let global_script = global_tasks_script();
+        assert!(global_script.trim_start().starts_with("local shipped"));
+        assert!(!global_script.trim_start().starts_with('-'));
+        assert!(global_script.contains("xmake: create Rust static library"));
+        assert!(global_script.contains("xmake: create Objective-C iOS app"));
+        // The tasks are wrapped in a [==[ ]==] string. The payload must not close it.
+        assert!(!SHIPPED_TASKS.contains("]==]"));
     }
 
     fn check_lua_c_scripts(value: &serde_json::Value) {
