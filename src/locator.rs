@@ -124,11 +124,27 @@ fn template_for_plan(mut template: TaskTemplate, plan: &DebugPlan) -> TaskTempla
 }
 
 fn adapter_config(adapter: &str) -> String {
-    if adapter == "CodeLLDB" {
-        r#"{"sourceLanguages":["c","cpp","rust"]}"#.to_string()
-    } else {
-        "{}".to_string()
+    // `current_platform` is a host import. Unit tests pass the OS in directly.
+    let on_mac = !cfg!(test) && matches!(zed::current_platform().0, zed::Os::Mac);
+    adapter_config_for(adapter, on_mac)
+}
+
+fn adapter_config_for(adapter: &str, on_mac: bool) -> String {
+    if adapter != "CodeLLDB" {
+        return "{}".to_string();
     }
+    let mut config = zed::serde_json::json!({
+        "sourceLanguages": ["c", "cpp", "rust"]
+    });
+    // macOS opens /tmp and /var as /private/tmp and /private/var. A binary built
+    // through the other name keeps that path in debug info, so breakpoints miss.
+    if on_mac {
+        config["sourceMap"] = zed::serde_json::json!({
+            "/tmp": "/private/tmp",
+            "/var": "/private/var"
+        });
+    }
+    config.to_string()
 }
 
 fn resolve_debuggee_cwd(cwd: &str, project: &str) -> String {
@@ -281,6 +297,15 @@ mod tests {
                 .iter()
                 .any(|(key, value)| { key == DEBUG_ARGS_ENV && value.contains("--verbose") })
         );
+    }
+
+    #[test]
+    fn macos_codelldb_remaps_private_tmp() {
+        let config = adapter_config_for("CodeLLDB", true);
+        assert!(config.contains("\"/tmp\":\"/private/tmp\""));
+        assert!(config.contains("\"/var\":\"/private/var\""));
+        assert!(!adapter_config_for("CodeLLDB", false).contains("sourceMap"));
+        assert_eq!(adapter_config_for("GDB", true), "{}");
     }
 
     #[test]
