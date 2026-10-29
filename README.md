@@ -31,13 +31,11 @@
 
 ## Introduction
 
-A XMake integration for Zed editor with automatic LSP installation, syntax highlighting, build tasks, and in-editor debugging.
+An XMake integration for Zed with automatic language-server installation, syntax highlighting, build tasks, and in-editor debugging.
 
-It is deeply integrated with [xmake](https://github.com/xmake-io/xmake) and Zed editor to provide a convenient and fast cross-platform C/C++ development and building.
+Install [xmake](https://github.com/xmake-io/xmake) first and open a project that contains `xmake.lua`.
 
-Install [xmake](https://github.com/xmake-io/xmake) first and open a project with `xmake.lua`.
-
-Please see [xmake-github](https://github.com/xmake-io/xmake) and [website](https://xmake.io) if you want to known more about xmake.
+See the [xmake repository](https://github.com/xmake-io/xmake) and the [website](https://xmake.io) to learn the build system itself.
 
 ## Features
 
@@ -90,26 +88,16 @@ Please see [xmake-github](https://github.com/xmake-io/xmake) and [website](https
 
 ## Installation
 
-1. **Install Lua Extension** (required for syntax highlighting)
-   - Press `Cmd+Shift+X` → Search "Lua" → Install
-   - xmake.lua files use Lua syntax, so this grammar is needed
+1. Open the extension view with `Cmd+Shift+X` (macOS) or `Ctrl+Shift+X` (Linux/Windows).
+2. Search for XMake and install it.
 
-2. **Install XMake Extension**
-   - Press `Cmd+Shift+X` (macOS) or `Ctrl+Shift+X` (Linux/Windows)
-   - Search for "XMake"
-   - Click Install
-
-The XMake extension will automatically download and install the xmake_ls language server when you open an `xmake.lua` file.
+Opening `xmake.lua` downloads xmake_ls. Syntax highlighting uses the Lua grammar shipped with this extension. A separate Lua extension is not required.
 
 ## Tasks
 
-Zed language tasks appear in `task: spawn` (not as Command Palette actions). Extension tasks are scoped to `xmake.lua`. To use them from a `.cpp` buffer:
+Zed shows tasks in `task: spawn`, not in the command palette. On startup this extension merges its tasks into Zed's global `tasks.json` (`~/.config/zed/tasks.json` on macOS and Linux, `%APPDATA%\Zed\tasks.json` on Windows). They then appear in every project, from a C or C++ file, without opening `xmake.lua`. Tasks that are not named `xmake: …` are left alone. This runs after Zed is allowed to execute `xmake`; restart Zed once that permission is granted.
 
-1. Open `xmake.lua`
-2. Run `task: spawn`
-3. Choose **xmake: install workspace tasks**
-
-That writes `.zed/tasks.json` (and `.zed/debug.json` if it does not already exist). After that, `task: spawn` lists xmake build, run, and debug tasks from any file in the project. Delete `.zed/debug.json` and run the install task again to refresh a debug scenario created by an older version.
+`xmake: install workspace tasks` writes the same list into the current project's `.zed/tasks.json`, and writes `.zed/debug.json` only when that file is missing. Delete `.zed/debug.json` and run the install task again to refresh an older debug scenario.
 
 Optional keybinding in `~/.config/zed/keymap.json`:
 
@@ -135,23 +123,35 @@ Useful tasks:
 | `xmake: generate compile_commands` | write `.zed/compile_commands.json` for clangd |
 | `xmake: install workspace tasks` | copy tasks into `.zed/tasks.json` |
 
-Create-project tasks use a default name (`myproject`). Edit it in the `task: spawn` modal before running (Tab / `opt-enter`).
+Create tasks are listed under [Creating a project](#creating-a-project).
 
 ## Debugging
 
 Zed's built-in C/C++ adapters (CodeLLDB, GDB) are used. This extension registers an **xmake debug locator**. It turns an `xmake` build or `xmake run` task into a debug session: the build runs first, then Zed launches the binary reported by `target:targetfile()`.
 
-Zed blocks that second step until the extension is allowed to run `xmake`. `extension.toml` declares `process:exec` for `xmake`. Grant it in Zed settings under `extension.granted_extension_capabilities` with `command` `xmake` and `args` `["**"]`, then restart Zed. Without that grant the build still succeeds and the debugger reports that no locator completed.
+Zed blocks that second step until this extension is allowed to run `xmake`. The manifest already lists `process:exec`. Grant it in Zed settings, then restart Zed. Without the grant the build still succeeds and the debugger reports that no locator completed.
+
+```json
+{
+  "extension": {
+    "granted_extension_capabilities": [
+      { "kind": "process:exec", "command": "xmake", "args": ["**"] }
+    ]
+  }
+}
+```
+
+On Windows, grant `xmake.exe` the same way. `xmake.cmd` and `xmake.bat` are listed in the manifest for the same reason.
 
 On macOS, CodeLLDB is told that `/tmp` and `/var` are `/private/tmp` and `/private/var`. Otherwise a binary built through one name and a breakpoint set through the other never stop.
 
 `xmake: debug` is the task that matches "compile in debug mode and debug inside Zed". It runs `xmake f -m debug -y`, builds, and hands the binary to CodeLLDB or GDB. `xmake run <target> -- args` is the same flow for one target: the build step becomes `xmake build <target>`, and the arguments after the target are passed to the program. The program starts in the target's `set_rundir`, or in the binary's directory when that is unset. `xmake run -w <dir>` overrides it. A named target whose binary is not on disk is not replaced with a different target.
 
-1. Set breakpoints in your C/C++ source
-2. Run `debugger: start` (`debugger::Start`)
-3. Pick **xmake: debug**, **xmake: build**, or **xmake: run**. From a `.cpp` file, install workspace tasks once so those entries exist, or pick **xmake: debug current target**
+1. Set breakpoints in the program source.
+2. Run `debugger: start` (`debugger::Start`). The `xmake.lua` buffer does not need to be open.
+3. Pick **xmake: debug current target**. That entry comes from `.zed/debug.json`. The install task writes it, or you can copy [debug.json.example](debug.json.example). The scenario has no `program` field on purpose. Zed asks the locator for the binary after the debug build finishes.
 
-You can also copy [debug.json.example](debug.json.example) to `.zed/debug.json`. That scenario has no `program` field on purpose. Zed asks the locator for the binary after the debug build finishes.
+**xmake: debug**, **xmake: build**, and **xmake: run** appear in that same list after workspace tasks are installed. Until then, those names exist only while `xmake.lua` is the active file.
 
 `xmake: debug in terminal` uses xmake's own `xmake run -d` (system lldb/gdb/windbg) instead of the Zed debug adapter. It does not appear in the Zed debugger list.
 
@@ -178,63 +178,36 @@ If you already manage clangd yourself, set:
 }
 ```
 
-## Quick Start: Creating Projects
+## Creating a project
 
-Create new xmake projects using the built-in tasks:
+Every template from `xmake create --list` (xmake 3.1) is a global task named `xmake: create …`. You do not need `xmake.lua` open. `xmake: create project help` prints the same list from xmake.
 
-1. Open `xmake.lua` so the xmake language is active
-2. Open `task: spawn` (`task::Spawn`)
-3. Select "xmake: create project help" or a create-project task (`xmake: create C++ console`, …)
+The first create writes the project into the folder you have open, so `xmake.lua` is at that folder's root and build, run, and debug find it. The target is named `app`, or `lib` for a library. The folder name is not used. A folder called `try` would otherwise become `namespace try` in the C# template, and that does not compile.
 
-Example:
-```bash
-# C++ console project
-xmake create -l c++ -t console myproject
-
-# Rust static library
-xmake create -l rust -t static mylib
-
-# Zig shared library
-xmake create -l zig -t shared mylib
-
-# Qt widget application
-xmake create -l c++ -t qt.widgetapp myapp
-
-# iOS app
-xmake create -l objc -t xcode.iosapp myapp
-```
-
-## Supported Languages (15)
+A later create in that same folder does not overwrite the first project. It adds `project2`, then `project3`, and inserts `includes("project2")` at the top of the root `xmake.lua`. `xmake` at the root builds every included project.
 
 | Language | Console | Static | Shared | Module |
 |----------|---------|--------|--------|--------|
-| C | ✅ | ✅ | ✅ | ✅ |
-| C++ | ✅ | ✅ | ✅ | ✅ |
-| Rust | ✅ | ✅ | ❌ | ❌ |
-| Zig | ✅ | ✅ | ✅ | ❌ |
-| Go | ✅ | ✅ | ❌ | ❌ |
-| D Language | ✅ | ✅ | ✅ | ❌ |
-| CUDA | ✅ | ✅ | ✅ | ❌ |
-| Swift | ✅ | ❌ | ❌ | ❌ |
-| Fortran | ✅ | ✅ | ✅ | ❌ |
-| Objective-C | ✅ | ❌ | ❌ | ❌ |
-| Objective-C++ | ✅ | ❌ | ❌ | ❌ |
-| Nim | ✅ | ✅ | ✅ | ❌ |
-| Kotlin | ✅ | ✅ | ✅ | ❌ |
-| Vala | ✅ | ✅ | ✅ | ❌ |
-| Pascal | ✅ | ✅ | ✅ | ❌ |
+| C | yes | yes | yes | binary and shared |
+| C++ | yes | yes | yes | binary and shared |
+| C# | yes | yes | yes | |
+| CUDA | yes | yes | yes | |
+| D | yes | yes | yes | |
+| Fortran | yes | yes | yes | |
+| Go | yes | yes | | |
+| Kotlin | yes | yes | yes | |
+| Nim | yes | yes | yes | |
+| Objective-C | yes | | | |
+| Objective-C++ | yes | | | |
+| Pascal | yes | | yes | |
+| Rust | yes | yes | yes | |
+| Swift | yes | | | |
+| Vala | yes | yes | yes | |
+| Zig | yes | yes | yes | |
 
-## Project Templates (25+)
+C and C++ also have an `xmake.cli` task. C++ adds Qt (console, static, shared, Quick, Quick static, widget, widget static) and wxWidgets. Objective-C adds Xcode bundle, framework, iOS app, iOS app with framework, macOS app, and macOS app with framework. Objective-C++ adds the Xcode bundle and framework.
 
-* **Console**: Basic executable projects
-* **Static Library**: .a / .lib files
-* **Shared Library**: .so / .dylib / .dll files
-* **Module**: C/C++ module binaries
-* **Qt**: Console, Quick App, Widget App (static/shared variants)
-* **TBOX**: Console, Static, Shared library projects
-* **wxWidgets**: Desktop GUI applications
-* **Xcode**: Bundle, Framework, macOS App, iOS App
-* **XMake CLI**: Command-line tool projects
+xmake 3.1 has no TBOX create template, and Pascal has no static library template. Those tasks are not invented here.
 
 ## Configuration
 
@@ -320,12 +293,19 @@ zed --foreground
 Remove the cached binary to trigger a fresh download:
 
 ```bash
-# macOS/Linux
-rm -rf ~/.local/share/zed/extensions/xmake/
+# macOS
+rm -rf ~/Library/Application\ Support/Zed/extensions/work/xmake
+
+# Linux
+rm -rf ~/.local/share/zed/extensions/work/xmake
 
 # Windows
-Remove-Item -Recurse -Force "$env:LOCALAPPDATA\Zed\extensions\xmake"
+Remove-Item -Recurse -Force "$env:LOCALAPPDATA\Zed\extensions\work\xmake"
 ```
+
+### Build succeeds, debugger says no locator completed
+
+The build task runs in the terminal. The locator runs inside the extension and is refused until `process:exec` for `xmake` is granted. Add the settings block in [Debugging](#debugging) and restart Zed.
 
 ### Language Server Not Starting
 
@@ -370,7 +350,7 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 * [XMake Documentation](https://xmake.io)
 * [xmake_ls Language Server](https://github.com/CppCXY/xmake_ls)
 * [Zed Extension API](https://zed.dev/docs/extensions)
-* [XMake Create Command](https://xmake.io/guide/basic-commands/create-project.html)
+* [xmake create](https://xmake.io/guide/basic-commands/create-project.html)
 
 ## License
 
