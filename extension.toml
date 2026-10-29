@@ -12,6 +12,27 @@ languages = ["xmake"]
 
 [debug_locators.xmake]
 
+# Zed will not spawn a process unless it is listed here and granted in settings.
+[[capabilities]]
+kind = "process:exec"
+command = "xmake"
+args = ["**"]
+
+[[capabilities]]
+kind = "process:exec"
+command = "xmake.exe"
+args = ["**"]
+
+[[capabilities]]
+kind = "process:exec"
+command = "xmake.cmd"
+args = ["**"]
+
+[[capabilities]]
+kind = "process:exec"
+command = "xmake.bat"
+args = ["**"]
+
 [configuration]
 type = "object"
 title = "XMake Settings"
