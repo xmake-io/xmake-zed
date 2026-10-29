@@ -18,9 +18,6 @@ local settings = {}
 
 if os.isfile(dest) then
     local raw = io.readfile(dest) or ""
-    if raw:find("//", 1, true) or raw:find("/*", 1, true) then
-        return
-    end
     local decoded = json.decode(raw)
     if type(decoded) ~= "table" then
         return

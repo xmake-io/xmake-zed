@@ -295,11 +295,11 @@ The build task runs in the terminal. The locator runs inside the extension and i
 
 ### Lua files in an xmake project
 
-This language is Lua plus the xmake API. It uses the same Lua grammar. When a project contains `xmake.lua`, opening one of its Lua files makes the extension write `.zed/settings.json` so every `.lua` file in that project stays on xmake_ls. A project with no `xmake.lua` is left to the Lua extension. If `.zed/settings.json` already contains comments, it is left unchanged.
+This language is Lua plus the xmake API, using the Lua grammar. Only files named `xmake.lua` are claimed on their own. Opening that file writes `.zed/settings.json` so the other `.lua` files in the same project use xmake_ls too. A project with no `xmake.lua` is left to the Lua extension. A settings file that is not plain JSON is left unchanged.
 
 ### A build with several languages stops on one missing compiler
 
-Projects created in the same folder are linked with `includes`, so `xmake` and `xmake run` build every target. `error: cannot get program for cs` means xmake did not find `csc`. Having `dotnet` on `PATH` is not enough. `xmake: Clang toolchain` only saves clang as the C/C++ toolchain (`xmake f --toolchain=clang -y`). It does not install a C# compiler.
+Projects created in the same folder are linked with `includes`, so `xmake` and `xmake run` build every target. `error: cannot get program for cs` means the saved configuration has no C# compiler. xmake looks for `dotnet`. Run `xmake: clean configuration`, then build again. `xmake: Clang toolchain` only saves clang as the C/C++ toolchain (`xmake f --toolchain=clang -y`).
 
 ### Language Server Not Starting
 

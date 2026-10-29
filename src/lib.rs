@@ -21,14 +21,17 @@ fn global_tasks_script() -> String {
     GLOBAL_TASKS_TEMPLATE.replace("@TASKS@", SHIPPED_TASKS.trim())
 }
 
-/// Copy the shipped tasks into Zed's global tasks.json so they show up from
-/// any file, for anyone who installed the extension. xmake tasks are replaced;
-/// every other task in that file is left in place.
 /// A project that contains `xmake.lua` uses this extension for every `.lua`
 /// file. Zed would otherwise give those files to the Lua extension, which
 /// reports `add_rules` and the other xmake APIs as undefined globals.
 fn claim_lua_files(worktree: &Worktree) {
     if worktree.read_text_file("xmake.lua").is_err() {
+        return;
+    }
+    if let Ok(existing) = worktree.read_text_file(".zed/settings.json")
+        && existing.contains("/**/*.lua")
+        && existing.contains("?:/**/*.lua")
+    {
         return;
     }
     let script = CLAIM_LUA_FILES.trim();
@@ -42,6 +45,10 @@ fn claim_lua_files(worktree: &Worktree) {
         .env("XMAKE_ZED_ROOT", worktree.root_path())
         .output();
 }
+
+/// Copy the shipped tasks into Zed's global tasks.json so they show up from
+/// any file, for anyone who installed the extension. xmake tasks are replaced;
+/// every other task in that file is left in place.
 
 fn install_global_tasks() {
     let script = global_tasks_script();

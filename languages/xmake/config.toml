@@ -1,6 +1,6 @@
 name = "xmake"
 grammar = "lua"
-path_suffixes = ["xmake.lua", "lua"]
+path_suffixes = ["xmake.lua"]
 line_comments = ["-- "]
 block_comment = ["--[[", "]]"]
 debuggers = ["CodeLLDB", "GDB", "LLDB"]
