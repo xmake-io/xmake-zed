@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- In a project that contains `xmake.lua`, every `.lua` file uses this extension's Lua language. The extension records that in the project's `.zed/settings.json`.
+
 ## 0.3.0
 
 Beta. The copy in the Zed extension catalog is still 0.1.0. This tag is the installable preview.

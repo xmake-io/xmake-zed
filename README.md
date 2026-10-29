@@ -293,17 +293,9 @@ Remove-Item -Recurse -Force "$env:LOCALAPPDATA\Zed\extensions\work\xmake"
 
 The build task runs in the terminal. The locator runs inside the extension and is refused until `process:exec` for `xmake` is granted. Add the settings block in [Debugging](#debugging) and restart Zed.
 
-### Lua extension warns about `add_rules`
+### Lua files in an xmake project
 
-`xmake.lua` ends in `.lua`. With the Lua extension installed, Zed hands that file to LuaLS, which reports `Undefined global` for `add_rules`, `target`, and the rest of the xmake API. Ordinary `.lua` files should stay on Lua. Add this to Zed settings so only `xmake.lua` stays on this extension:
-
-```json
-"file_types": {
-  "xmake": ["/**/xmake.lua", "?:/**/xmake.lua"]
-}
-```
-
-Reload Zed after saving the settings.
+This language is Lua plus the xmake API. It uses the same Lua grammar. When a project contains `xmake.lua`, opening one of its Lua files makes the extension write `.zed/settings.json` so every `.lua` file in that project stays on xmake_ls. A project with no `xmake.lua` is left to the Lua extension. If `.zed/settings.json` already contains comments, it is left unchanged.
 
 ### A build with several languages stops on one missing compiler
 

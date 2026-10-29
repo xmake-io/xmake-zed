@@ -15,6 +15,7 @@ struct XMakeExtension {
 
 const GLOBAL_TASKS_TEMPLATE: &str = include_str!("../resources/install-global-tasks.lua");
 const SHIPPED_TASKS: &str = include_str!("../languages/xmake/tasks.json");
+const CLAIM_LUA_FILES: &str = include_str!("../resources/claim-lua-files.lua");
 
 fn global_tasks_script() -> String {
     GLOBAL_TASKS_TEMPLATE.replace("@TASKS@", SHIPPED_TASKS.trim())
@@ -23,6 +24,25 @@ fn global_tasks_script() -> String {
 /// Copy the shipped tasks into Zed's global tasks.json so they show up from
 /// any file, for anyone who installed the extension. xmake tasks are replaced;
 /// every other task in that file is left in place.
+/// A project that contains `xmake.lua` uses this extension for every `.lua`
+/// file. Zed would otherwise give those files to the Lua extension, which
+/// reports `add_rules` and the other xmake APIs as undefined globals.
+fn claim_lua_files(worktree: &Worktree) {
+    if worktree.read_text_file("xmake.lua").is_err() {
+        return;
+    }
+    let script = CLAIM_LUA_FILES.trim();
+    if script.starts_with('-') {
+        return;
+    }
+    let _ = ProcessCommand::new("xmake")
+        .arg("lua")
+        .arg("-c")
+        .arg(script)
+        .env("XMAKE_ZED_ROOT", worktree.root_path())
+        .output();
+}
+
 fn install_global_tasks() {
     let script = global_tasks_script();
     if script.trim_start().starts_with('-') {
@@ -105,6 +125,7 @@ impl zed::Extension for XMakeExtension {
         language_server_id: &LanguageServerId,
         worktree: &Worktree,
     ) -> Result<zed::Command> {
+        claim_lua_files(worktree);
         let settings = LspSettings::for_worktree("xmake-ls", worktree)
             .ok()
             .and_then(|lsp_settings| lsp_settings.binary)
@@ -329,6 +350,11 @@ mod tests {
         let locator = include_str!("../resources/find-binary.lua").trim();
         assert!(!locator.starts_with('-'));
         assert!(!locator.contains("$ZED_"));
+        let claim = include_str!("../resources/claim-lua-files.lua").trim();
+        assert!(!claim.starts_with('-'));
+        assert!(claim.contains("xmake.lua"));
+        assert!(claim.contains("/**/*.lua"));
+        assert!(!claim.contains("$ZED_"));
 
         let global_script = global_tasks_script();
         assert!(global_script.trim_start().starts_with("local shipped"));
