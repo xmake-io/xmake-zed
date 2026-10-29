@@ -13,3 +13,6 @@ Cargo.lock
 
 # Zed dev extension testing
 /.zed
+
+# Compiled by Zed when the dev extension is installed
+/grammars

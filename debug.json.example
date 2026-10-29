@@ -1,0 +1,15 @@
+[
+  {
+    "label": "xmake: debug current target",
+    "adapter": "CodeLLDB",
+    "build": {
+      "command": "xmake",
+      "args": [
+        "lua",
+        "-c",
+        "os.execv('xmake', {'f', '-m', 'debug', '-y'}); os.execv('xmake', {})"
+      ],
+      "cwd": "$ZED_WORKTREE_ROOT"
+    }
+  }
+]
