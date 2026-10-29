@@ -5,11 +5,14 @@
 //! `build` is the default action. `-P` is not used here; the locator
 //! changes directory in Lua so the build tree stays the project's.
 
+/// Shell-quoted debug build. Zed concatenates task args without quoting, so
+/// the Lua has to already be one single-quoted word. The quotes are not part
+/// of the program xmake runs; `lua_source` strips one pair before comparing.
 pub(crate) const DEBUG_BUILD_SNIPPET: &str =
-    "os.execv('xmake', {'f', '-m', 'debug', '-y'}); os.execv('xmake', {})";
+    "'os.execv(\"xmake\", {\"f\", \"-m\", \"debug\", \"-y\"}); os.execv(\"xmake\", {})'";
 
 #[cfg(test)]
-pub(crate) const TERMINAL_DEBUG_SNIPPET: &str = "os.execv('xmake', {'f', '-m', 'debug', '-y'}); os.execv('xmake', {}); os.execv('xmake', {'run', '-d'})";
+pub(crate) const TERMINAL_DEBUG_SNIPPET: &str = "'os.execv(\"xmake\", {\"f\", \"-m\", \"debug\", \"-y\"}); os.execv(\"xmake\", {}); os.execv(\"xmake\", {\"run\", \"-d\"})'";
 
 /// What the first positional word is, including xmake's short aliases.
 /// `xmake --help` (3.1) is the source of the action and plugin names.
@@ -227,12 +230,28 @@ fn parse_lua(args: &[String]) -> Option<DebugPlan> {
         }
         // Only the extension's debug-mode build helper is a debug scenario.
         // Other `xmake lua -c` tasks (clean, compile_commands, terminal `run -d`) are not.
-        if arg.trim() == DEBUG_BUILD_SNIPPET {
+        // One surrounding pair of shell quotes is ignored: the task file stores
+        // them so zsh does not parse the Lua, and the locator sees them too.
+        if lua_source(arg) == lua_source(DEBUG_BUILD_SNIPPET) {
             return Some(plain_build());
         }
         return None;
     }
     None
+}
+
+/// Text of a `lua -c` argument after one pair of shell single quotes.
+/// Quotes are stripped only when the inside has no single quote, so a Lua
+/// string such as `os.execv('xmake', {})` stays intact and does not match.
+fn lua_source(arg: &str) -> &str {
+    let arg = arg.trim();
+    let Some(inner) = arg
+        .strip_prefix('\'')
+        .and_then(|rest| rest.strip_suffix('\''))
+    else {
+        return arg;
+    };
+    if inner.contains('\'') { arg } else { inner }
 }
 
 fn is_non_debug_flag(arg: &str) -> bool {
@@ -415,12 +434,21 @@ mod tests {
     #[test]
     fn only_the_debug_build_lua_helper_is_debuggable() {
         assert!(plan(&["lua", "-c", DEBUG_BUILD_SNIPPET]).is_some());
+        assert!(plan(&["lua", "-c", lua_source(DEBUG_BUILD_SNIPPET)]).is_some());
         assert!(plan(&["lua", "-c", TERMINAL_DEBUG_SNIPPET]).is_none());
         assert!(
             plan(&[
                 "lua",
                 "-c",
                 "os.execv('xmake', {'clean', '-a'}); os.execv('xmake', {})"
+            ])
+            .is_none()
+        );
+        assert!(
+            plan(&[
+                "lua",
+                "-c",
+                "'os.execv(\"xmake\", {\"clean\", \"-a\"}); os.execv(\"xmake\", {})'"
             ])
             .is_none()
         );
