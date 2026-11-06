@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+- Stop writing Zed's global `tasks.json` and the project's `.zed/settings.json`. Tasks stay on `xmake.lua`. Copy the task file, or set `file_types`, yourself if you want them everywhere.
+
 ## 0.3.2
 
 - Only `xmake.lua` is associated by file name. Other `.lua` files in that project are associated after `.zed/settings.json` is written.

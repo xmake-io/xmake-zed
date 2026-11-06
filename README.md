@@ -87,7 +87,7 @@ Opening `xmake.lua` downloads xmake_ls. Syntax highlighting uses the Lua grammar
 
 ## Tasks
 
-Zed shows tasks in `task: spawn`, not in the command palette. On startup this extension merges its tasks into Zed's global `tasks.json` (`~/.config/zed/tasks.json` on macOS and Linux, `%APPDATA%\Zed\tasks.json` on Windows). They then appear in every project, from a C or C++ file, without opening `xmake.lua`. Tasks that are not named `xmake: …` are left alone. This runs after Zed is allowed to execute `xmake`; restart Zed once that permission is granted. The extension does not write a tasks file into the project.
+Zed shows tasks in `task: spawn`, not in the command palette. They are available while `xmake.lua` is the active file. To use them from a C or C++ file, copy `languages/xmake/tasks.json` into Zed's global tasks file yourself: `~/.config/zed/tasks.json` on macOS and Linux, `%APPDATA%\Zed\tasks.json` on Windows. The extension does not write that file.
 
 Optional keybinding in `~/.config/zed/keymap.json`:
 
@@ -137,7 +137,7 @@ On macOS, CodeLLDB is told that `/tmp` and `/var` are `/private/tmp` and `/priva
 `xmake: debug` is the task that matches "compile in debug mode and debug inside Zed". It runs `xmake f -m debug -y`, builds, and hands the binary to CodeLLDB or GDB. `xmake run <target> -- args` is the same flow for one target: the build step becomes `xmake build <target>`, and the arguments after the target are passed to the program. The program starts in the target's `set_rundir`, or in the binary's directory when that is unset. `xmake run -w <dir>` overrides it. A named target whose binary is not on disk is not replaced with a different target.
 
 1. Set breakpoints in the program source.
-2. Run `debugger: start` (`debugger::Start`). The `xmake.lua` buffer does not need to be open.
+2. Run `debugger: start` (`debugger::Start`). If the tasks are only the language tasks, `xmake.lua` has to be the active file. After you copy them into the global tasks file, it does not.
 3. Pick **xmake: debug**, **xmake: build**, or **xmake: run**.
 
 `xmake: debug in terminal` uses xmake's own `xmake run -d` (system lldb/gdb/windbg) instead of the Zed debug adapter. It does not appear in the Zed debugger list.
@@ -295,7 +295,13 @@ The build task runs in the terminal. The locator runs inside the extension and i
 
 ### Lua files in an xmake project
 
-This language is Lua plus the xmake API, using the Lua grammar. Only files named `xmake.lua` are claimed on their own. Opening that file writes `.zed/settings.json` so the other `.lua` files in the same project use xmake_ls too. A project with no `xmake.lua` is left to the Lua extension. A settings file that is not plain JSON is left unchanged.
+This language is Lua plus the xmake API, using the Lua grammar. Only files named `xmake.lua` are associated automatically. To use it for every `.lua` file in one project, add this to that project's `.zed/settings.json` yourself:
+
+```json
+"file_types": {
+  "xmake": ["/**/*.lua", "?:/**/*.lua"]
+}
+```
 
 ### A build with several languages stops on one missing compiler
 

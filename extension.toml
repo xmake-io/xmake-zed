@@ -1,8 +1,8 @@
 id = "xmake"
 name = "XMake"
-version = "0.3.2"
+version = "0.3.3"
 schema_version = 1
-authors = ["Burak Aksoy ornatus_albifrons@proton.me"]
+authors = ["xmake-io"]
 description = "XMake support for Zed: xmake_ls, syntax highlighting, build tasks, and debug locators"
 repository = "https://github.com/xmake-io/xmake-zed"
 

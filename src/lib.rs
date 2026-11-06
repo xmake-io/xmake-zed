@@ -1,7 +1,6 @@
 use std::fs;
 use zed_extension_api::{
     self as zed, DebugRequest, DebugScenario, LanguageServerId, Result, TaskTemplate, Worktree,
-    process::Command as ProcessCommand,
     serde_json::{self, Value},
     settings::LspSettings,
 };
@@ -11,55 +10,6 @@ mod locator;
 
 struct XMakeExtension {
     cached_binary_path: Option<String>,
-}
-
-const GLOBAL_TASKS_TEMPLATE: &str = include_str!("../resources/install-global-tasks.lua");
-const SHIPPED_TASKS: &str = include_str!("../languages/xmake/tasks.json");
-const CLAIM_LUA_FILES: &str = include_str!("../resources/claim-lua-files.lua");
-
-fn global_tasks_script() -> String {
-    GLOBAL_TASKS_TEMPLATE.replace("@TASKS@", SHIPPED_TASKS.trim())
-}
-
-/// A project that contains `xmake.lua` uses this extension for every `.lua`
-/// file. Zed would otherwise give those files to the Lua extension, which
-/// reports `add_rules` and the other xmake APIs as undefined globals.
-fn claim_lua_files(worktree: &Worktree) {
-    if worktree.read_text_file("xmake.lua").is_err() {
-        return;
-    }
-    if let Ok(existing) = worktree.read_text_file(".zed/settings.json")
-        && existing.contains("/**/*.lua")
-        && existing.contains("?:/**/*.lua")
-    {
-        return;
-    }
-    let script = CLAIM_LUA_FILES.trim();
-    if script.starts_with('-') {
-        return;
-    }
-    let _ = ProcessCommand::new("xmake")
-        .arg("lua")
-        .arg("-c")
-        .arg(script)
-        .env("XMAKE_ZED_ROOT", worktree.root_path())
-        .output();
-}
-
-/// Copy the shipped tasks into Zed's global tasks.json so they show up from
-/// any file, for anyone who installed the extension. xmake tasks are replaced;
-/// every other task in that file is left in place.
-
-fn install_global_tasks() {
-    let script = global_tasks_script();
-    if script.trim_start().starts_with('-') {
-        return;
-    }
-    let _ = ProcessCommand::new("xmake")
-        .arg("lua")
-        .arg("-c")
-        .arg(script.trim())
-        .output();
 }
 
 impl XMakeExtension {
@@ -121,7 +71,6 @@ impl XMakeExtension {
 
 impl zed::Extension for XMakeExtension {
     fn new() -> Self {
-        install_global_tasks();
         Self {
             cached_binary_path: None,
         }
@@ -132,7 +81,6 @@ impl zed::Extension for XMakeExtension {
         language_server_id: &LanguageServerId,
         worktree: &Worktree,
     ) -> Result<zed::Command> {
-        claim_lua_files(worktree);
         let settings = LspSettings::for_worktree("xmake-ls", worktree)
             .ok()
             .and_then(|lsp_settings| lsp_settings.binary)
@@ -357,19 +305,6 @@ mod tests {
         let locator = include_str!("../resources/find-binary.lua").trim();
         assert!(!locator.starts_with('-'));
         assert!(!locator.contains("$ZED_"));
-        let claim = include_str!("../resources/claim-lua-files.lua").trim();
-        assert!(!claim.starts_with('-'));
-        assert!(claim.contains("xmake.lua"));
-        assert!(claim.contains("/**/*.lua"));
-        assert!(!claim.contains("$ZED_"));
-
-        let global_script = global_tasks_script();
-        assert!(global_script.trim_start().starts_with("local shipped"));
-        assert!(!global_script.trim_start().starts_with('-'));
-        assert!(global_script.contains("xmake: create Rust static library"));
-        assert!(global_script.contains("xmake: create Objective-C iOS app"));
-        // The tasks are wrapped in a [==[ ]==] string. The payload must not close it.
-        assert!(!SHIPPED_TASKS.contains("]==]"));
     }
 
     fn check_lua_c_scripts(value: &serde_json::Value) {
