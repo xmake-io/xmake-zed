@@ -7,6 +7,11 @@ debuggers = ["CodeLLDB", "GDB", "LLDB"]
 tab_size = 4
 hard_tabs = false
 
+# package/target/option/... are plain Lua calls, so indents.scm has no node to
+# indent: these line patterns indent the body and outdent the matching *_end().
+increase_indent_pattern = '^(package|target|option|rule|task|toolchain|plugin|addon|template|group)\s*\('
+decrease_indent_pattern = '^\s*(package_end|target_end|option_end|rule_end|task_end|toolchain_end|plugin_end|addon_end|template_end|group_end)\s*\('
+
 [editor.hover]
 enabled = true
 
