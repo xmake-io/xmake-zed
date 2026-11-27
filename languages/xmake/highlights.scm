@@ -1,9 +1,8 @@
 ;; Syntax highlighting for xmake.lua.
 ;;
 ;; The first half is the official tree-sitter-lua query, copied verbatim from
-;; tree-sitter-grammars/tree-sitter-lua@d76023017f7485eae629cb60d406c7a1ca0f40c9
-;; (the revision pinned in extension.toml), so Lua constructs keep exactly the
-;; colours they have in .lua buffers.
+;; tree-sitter-lua (the grammar this repository forks, pinned in extension.toml),
+;; so Lua constructs keep exactly the colours they have in .lua buffers.
 ;;
 ;; The XMake section comes after it: Zed applies later patterns last, so those
 ;; rules override the base ones where xmake needs a different reading.
@@ -221,22 +220,13 @@
 ;; XMake
 ;; ---------------------------------------------------------------------------
 
-;; Block declarations: package/target/option/rule/task/toolchain/plugin/addon.
-;; They open a scope even though Lua sees them as ordinary calls, so they get
-;; the built-in colour instead of the plain call colour.
-(function_call
-  name: (identifier) @function.builtin
-  (#any-of? @function.builtin
-    "package" "target" "option" "rule" "task" "toolchain" "plugin" "addon"
-    "template" "group"))
+;; Block declarations: package/target/option/... open a block, so the grammar
+;; gives them their own node; the opener and its *_end() closer share the
+;; builtin colour so a block reads as one unit.
+(xmake_block
+  name: (xmake_block_name) @function.builtin)
 
-;; The matching *_end() closers share the opener's colour, so a block reads as
-;; one unit.
-(function_call
-  name: (identifier) @function.builtin
-  (#any-of? @function.builtin
-    "package_end" "target_end" "option_end" "rule_end" "task_end"
-    "toolchain_end" "plugin_end" "addon_end" "template_end" "group_end"))
+(xmake_block_end) @function.builtin
 
 ;; Platform/mode predicates are xmake built-ins rather than ordinary calls.
 (function_call

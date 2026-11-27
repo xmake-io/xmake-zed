@@ -23,15 +23,12 @@
   (expression_list .
     value: (function_definition))) @item
 
-; XMake declarations: package("x"), target("x"), option("x"), ...
-(function_call
-  name: (identifier) @_kind
+; XMake declarations: package("x"), target("x"), option("x"), ... The
+; grammar turns them into blocks, so the outline nests what is inside.
+(xmake_block
   arguments: (arguments
     (string
-      (string_content) @name))
-  (#any-of? @_kind
-    "package" "target" "option" "rule" "task" "toolchain" "plugin" "addon"
-    "template" "group")) @item
+      (string_content) @name))) @item
 
 ; includes("dir/subdir") pulls in another script; keep it navigable.
 (function_call

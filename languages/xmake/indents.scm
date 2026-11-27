@@ -1,7 +1,10 @@
 ; Indentation for xmake.lua and the Lua it embeds.
-;
-; xmake's own blocks (package/target/option/...) are plain Lua calls, so they
-; have no node to indent: config.toml covers those with line patterns.
+
+; xmake blocks: package/target/option/... keep their body indented and their
+; *_end() closer outdented.
+(xmake_block
+  arguments: (arguments) @start
+  (xmake_block_end)? @end) @indent
 
 ; Lua blocks indent their body and outdent the token that closes them.
 (if_statement "end" @end) @indent

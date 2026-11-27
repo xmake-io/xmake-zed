@@ -53,26 +53,18 @@ See the [xmake repository](https://github.com/xmake-io/xmake) and the [website](
 
 ## Syntax highlighting
 
-The extension ships the official tree-sitter-lua query (the revision pinned in
-`extension.toml`) and adds xmake on top of it. Calls are coloured by their
-syntax shape, not by an API name list, so a new xmake API is highlighted
-without touching the query.
+The extension ships the tree-sitter-lua query (the grammar is pinned in `extension.toml`) and adds xmake on top of it. Calls are coloured by their syntax shape, not by an API name list, so a new xmake API is highlighted without touching the query.
 
-* `package` / `target` / `option` / `rule` / `task` / `toolchain` / `plugin`
-  and their `*_end()` closers take the builtin colour, so a block reads as one
-  unit
-* every other call keeps the normal call colour, including method calls such
-  as `package:config(...)` and dotted calls such as `os.cp(...)`
-* `is_plat` / `is_arch` / `is_mode` / `is_kind` / `is_host` / `is_subhost` /
-  `is_config` / `has_config` / `get_config` are marked as builtins, and the
-  module namespaces (`os`, `path`, `table`, `io`, ...) are marked as modules
-* table keys (`{headeronly = true}`) are properties, and the `end` of a
-  `package("x") ... end` block is coloured as the `end` it is
+* `package` / `target` / `option` / `rule` / `task` / `toolchain` / `plugin` and their `*_end()` closers take the builtin colour, so a block reads as one unit
+* every other call keeps the normal call colour, including method calls such as `package:config(...)` and dotted calls such as `os.cp(...)`
+* `is_plat` / `is_arch` / `is_mode` / `is_kind` / `is_host` / `is_subhost` / `is_config` / `has_config` / `get_config` are marked as builtins, and the module namespaces (`os`, `path`, `table`, `io`, ...) are marked as modules
+* table keys (`{headeronly = true}`) are properties, and the `end` of a `package("x") ... end` block is coloured as the `end` it is
 
-Text objects (`af`, `if`), the outline, indentation for Lua blocks, and shell
-highlighting inside `os.run("...")` come from the same query set. Port scripts
-written with `io.writefile("xmake.lua", [[ ... ]])` are highlighted as xmake
-instead of as an opaque string.
+Text objects (`af`, `if`, `ac`, `ic`), the outline, indentation, and shell highlighting inside `os.run("...")` come from the same query set. Port scripts written with `io.writefile("xmake.lua", [[ ... ]])` are highlighted as xmake instead of as an opaque string.
+
+### Grammar
+
+Plain Lua has no idea that `package("x")` opens a block: every declaration would be an ordinary call and its body would stay at the top level of the file, so nothing could fold, indent or outline it. The extension therefore uses [tree-sitter-xmake](https://github.com/Arteiimis/tree-sitter-xmake), a fork of tree-sitter-lua that adds an `xmake_block` node for `package`, `target`, `option`, `rule`, `task`, `toolchain`, `plugin`, `addon`, `template` and `group`. A block ends at the next declaration, at its `*_end()` call, or at the end of the enclosing block, which is how xmake scopes them; everything else in the grammar is upstream tree-sitter-lua.
 
 ## Platform Support
 
