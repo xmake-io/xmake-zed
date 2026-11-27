@@ -281,6 +281,35 @@
 ;; Function parameters, including the hook argument: on_install(function (package)).
 (parameters (identifier) @variable.parameter)
 
+;; Control flow. The base query labels these tokens @conditional, @repeat and
+;; @keyword.return; Zed themes (One Dark Pro Next among them) define none of
+;; those, so the keywords rendered as plain text. Function bodies keep
+;; @keyword.function; everything else takes the keyword colour.
+[
+  "if" "then" "elseif" "else"
+  "for" "while" "do" "repeat" "until"
+  "return"
+] @keyword
+
+(if_statement "end" @keyword)
+(while_statement "end" @keyword)
+(for_statement "end" @keyword)
+(do_statement "end" @keyword)
+
+;; Dot field access (configs.kind) is @field in the base query, which no Zed
+;; theme defines; read it as a property and re-assert call names after it.
+(dot_index_expression
+  field: (identifier) @property)
+
+(function_call
+  name: (dot_index_expression
+    field: (identifier) @function.call))
+
+;; Method declarations (function a:b()) are @method in the base query.
+(function_declaration
+  name: (method_index_expression
+    method: (identifier) @function))
+
 ;; `package("x") ... end` is not Lua syntax, so tree-sitter keeps the closing
 ;; `end` as an error node. Colour it like the `end` of a real block instead of
 ;; leaving it looking like an identifier.
