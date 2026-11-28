@@ -1,6 +1,6 @@
 id = "xmake"
 name = "XMake"
-version = "0.3.3"
+version = "0.4.0"
 schema_version = 1
 authors = ["xmake-io"]
 description = "XMake support for Zed: xmake_ls, syntax highlighting, build tasks, and debug locators"
@@ -74,6 +74,6 @@ type = "string"
 default = ""
 description = "Path to the xmake executable passed through to xmake_ls. Leave empty and xmake_ls searches PATH. Zed tasks and the debug locator run the `xmake` found on PATH."
 
-[grammars.lua]
-repository = "https://github.com/tree-sitter-grammars/tree-sitter-lua"
-commit = "d76023017f7485eae629cb60d406c7a1ca0f40c9"
+[grammars.xmake]
+repository = "https://github.com/Arteiimis/tree-sitter-xmake"
+rev = "def8797dff0b0ed98d5514e154267f0fd025fc8d"

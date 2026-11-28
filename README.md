@@ -49,21 +49,22 @@ See the [xmake repository](https://github.com/xmake-io/xmake) and the [website](
 * Project Templates
 
 * **Language server**: [xmake_ls](https://github.com/CppCXY/xmake_ls), started when an `xmake.lua` file is open. It provides completion, diagnostics, hover, go to definition, and find references for xmake.lua
-* **Outline**: tree-sitter symbols for targets, options, rules, and tasks
+* **Outline**: tree-sitter symbols for packages, targets, options, rules, tasks, functions, and `includes(...)`
 
 ## Syntax highlighting
 
-* **Target APIs**: target, set_kind, set_version, set_description, set_default
-* **File APIs**: add_files, add_headerfiles, add_installfiles, remove_files
-* **Include APIs**: add_includedirs, add_sysincludedirs, add_defines, add_undefines
-* **Linking APIs**: add_links, add_linkdirs, add_syslinks, add_frameworks, add_deps
-* **Compiler APIs**: add_cflags, add_cxxflags, add_ldflags, set_warnings, set_optimize
-* **Rule APIs**: add_rules, rule, on_load, on_build, before_build, after_build
-* **Option APIs**: option, add_options, set_default, set_showmenu
-* **Package APIs**: add_requires, add_packages, add_repositories, add_requireconfs
-* **Task APIs**: task, on_run, set_menu
-* **Utility APIs**: is_plat, is_arch, is_mode, is_host, has_config, get_config
-* **Global Modules**: os, path, string, table, math, io, debug, coroutine, hash, utils
+The extension ships the tree-sitter-lua query (the grammar is pinned in `extension.toml`) and adds xmake on top of it. Calls are coloured by their syntax shape, not by an API name list, so a new xmake API is highlighted without touching the query.
+
+* `package` / `target` / `option` / `rule` / `task` / `toolchain` / `plugin` and their `*_end()` closers take the builtin colour, so a block reads as one unit
+* every other call keeps the normal call colour, including method calls such as `package:config(...)` and dotted calls such as `os.cp(...)`
+* `is_plat` / `is_arch` / `is_mode` / `is_kind` / `is_host` / `is_subhost` / `is_config` / `has_config` / `get_config` are marked as builtins, and the module namespaces (`os`, `path`, `table`, `io`, ...) are marked as modules
+* table keys (`{headeronly = true}`) are properties, and the `end` of a `package("x") ... end` block is coloured as the `end` it is
+
+Text objects (`af`, `if`, `ac`, `ic`), the outline, indentation, and shell highlighting inside `os.run("...")` come from the same query set. Port scripts written with `io.writefile("xmake.lua", [[ ... ]])` are highlighted as xmake instead of as an opaque string.
+
+### Grammar
+
+Plain Lua has no idea that `package("x")` opens a block: every declaration would be an ordinary call and its body would stay at the top level of the file, so nothing could fold, indent or outline it. The extension therefore uses [tree-sitter-xmake](https://github.com/Arteiimis/tree-sitter-xmake), a fork of tree-sitter-lua that adds an `xmake_block` node for `package`, `target`, `option`, `rule`, `task`, `toolchain`, `plugin`, `addon`, `template` and `group`. A block ends at the next declaration, at its `*_end()` call, or at the end of the enclosing block, which is how xmake scopes them; everything else in the grammar is upstream tree-sitter-lua.
 
 ## Platform Support
 

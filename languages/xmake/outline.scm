@@ -1,66 +1,39 @@
-; Symbol outline for xmake.lua files
-; Uses Lua TreeSitter grammar node names
+; Symbols for xmake.lua and the Lua next to it.
 
-(function_declaration "function" @context) @item
+; Lua functions: function name(), function a.b(), function a:b()
+(function_declaration
+  name: (identifier) @name) @item
 
-(function_definition "function" @context) @item
+(function_declaration
+  name: (dot_index_expression
+    field: (identifier) @name)) @item
 
-; XMake target definitions
+(function_declaration
+  name: (method_index_expression
+    method: (identifier) @name)) @item
+
+; local f = function() end and M.f = function() end
+(assignment_statement
+  (variable_list .
+    name: [
+      (identifier) @name
+      (dot_index_expression
+        field: (identifier) @name)
+    ])
+  (expression_list .
+    value: (function_definition))) @item
+
+; XMake declarations: package("x"), target("x"), option("x"), ... The
+; grammar turns them into blocks, so the outline nests what is inside.
+(xmake_block
+  arguments: (arguments
+    (string
+      (string_content) @name))) @item
+
+; includes("dir/subdir") pulls in another script; keep it navigable.
 (function_call
   name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "target")) @item
-
-; Options
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "option")) @item
-
-; Rules
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "rule")) @item
-
-; Packages
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "package")) @item
-
-; Tasks
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "task")) @item
-
-; Plugins
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "plugin")) @item
-
-; Toolchains
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "toolchain")) @item
-
-; Namespaces
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "namespace")) @item
-
-; Includes
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
+  arguments: (arguments
+    (string
+      (string_content) @name))
   (#eq? @_kind "includes")) @item
-
-; Imports
-(function_call
-  name: (identifier) @_kind
-  arguments: (arguments (string) @name)
-  (#eq? @_kind "import")) @item

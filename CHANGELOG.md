@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Highlight xmake files from the tree-sitter-lua query instead of a hand-kept list of API names. Calls are matched by shape, so `add_urls`, `add_versions`, `on_test`, `package:config(...)` and `os.cp(...)` are no longer mistaken for variables.
+- Use [tree-sitter-xmake](https://github.com/Arteiimis/tree-sitter-xmake): `package`/`target`/`option`/... now produce an `xmake_block` node, so a block indents, outlines and selects as one unit.
+- Shell highlighting for `os.exec` / `os.run` / `os.iorun`, and xmake highlighting for the port scripts written with `io.writefile("xmake.lua", [[ ... ]])`.
+- Control-flow keywords take `@keyword`; Zed themes do not define `@conditional` / `@repeat`, so `if`/`then`/`end` used to render as plain text.
+- Outline names functions (including `M.f = function() end`) and reads declaration names without their quotes.
+
 ## 0.3.3
 
 - Stop writing Zed's global `tasks.json` and the project's `.zed/settings.json`. Tasks stay on `xmake.lua`. Copy the task file, or set `file_types`, yourself if you want them everywhere.

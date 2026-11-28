@@ -1,5 +1,5 @@
 name = "xmake"
-grammar = "lua"
+grammar = "xmake"
 path_suffixes = ["xmake.lua"]
 line_comments = ["-- "]
 block_comment = ["--[[", "]]"]

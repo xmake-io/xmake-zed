@@ -1,57 +1,104 @@
-; XMake syntax highlighting
-; Inherits from Lua grammar with xmake-specific extensions
+;; Syntax highlighting for xmake.lua.
+;;
+;; The first half is the official tree-sitter-lua query, copied verbatim from
+;; tree-sitter-lua (the grammar this repository forks, pinned in extension.toml),
+;; so Lua constructs keep exactly the colours they have in .lua buffers.
+;;
+;; The XMake section comes after it: Zed applies later patterns last, so those
+;; rules override the base ones where xmake needs a different reading.
 
-; Keywords (from Lua)
+;; ---------------------------------------------------------------------------
+;; tree-sitter-lua base query (verbatim)
+;; ---------------------------------------------------------------------------
+
+;; Keywords
+
+"return" @keyword.return
+
 [
-  "do"
-  "else"
-  "elseif"
-  "end"
-  "for"
-  "function"
-  "if"
-  "in"
-  "local"
-  "repeat"
-  "return"
-  "then"
-  "until"
-  "while"
-  (break_statement)
+ "goto"
+ "in"
+ "local"
 ] @keyword
 
-; Operators (from Lua)
+(label_statement) @label
+
+(break_statement) @keyword
+
+(do_statement
 [
-  "and"
-  "not"
-  "or"
+  "do"
+  "end"
+] @keyword)
+
+(while_statement
+[
+  "while"
+  "do"
+  "end"
+] @repeat)
+
+(repeat_statement
+[
+  "repeat"
+  "until"
+] @repeat)
+
+(if_statement
+[
+  "if"
+  "elseif"
+  "else"
+  "then"
+  "end"
+] @conditional)
+
+(elseif_statement
+[
+  "elseif"
+  "then"
+  "end"
+] @conditional)
+
+(else_statement
+[
+  "else"
+  "end"
+] @conditional)
+
+(for_statement
+[
+  "for"
+  "do"
+  "end"
+] @repeat)
+
+(function_declaration
+[
+  "function"
+  "end"
+] @keyword.function)
+
+(function_definition
+[
+  "function"
+  "end"
+] @keyword.function)
+
+;; Operators
+
+(binary_expression operator: _ @operator)
+
+(unary_expression operator: _ @operator)
+
+[
+ "and"
+ "not"
+ "or"
 ] @keyword.operator
 
-[
-  "+"
-  "-"
-  "*"
-  "/"
-  "%"
-  "^"
-  "#"
-  "=="
-  "~="
-  "<="
-  ">="
-  "<"
-  ">"
-  "="
-  "&"
-  "~"
-  "|"
-  "<<"
-  ">>"
-  "//"
-  ".."
-] @operator
+;; Punctuations
 
-; Punctuations (from Lua)
 [
   ";"
   ":"
@@ -59,20 +106,32 @@
   "."
 ] @punctuation.delimiter
 
-; Brackets (from Lua)
+;; Brackets
+
 [
-  "("
-  ")"
-  "["
-  "]"
-  "{"
-  "}"
+ "("
+ ")"
+ "["
+ "]"
+ "{"
+ "}"
 ] @punctuation.bracket
 
-; Variables (from Lua)
+;; Variables
+
 (identifier) @variable
 
-; Constants (from Lua)
+((identifier) @variable.builtin
+ (#eq? @variable.builtin "self"))
+
+(variable_list
+  (attribute
+    "<" @punctuation.bracket
+    (identifier) @attribute
+    ">" @punctuation.bracket))
+
+;; Constants
+
 ((identifier) @constant
  (#match? @constant "^[A-Z][A-Z_0-9]*$"))
 
@@ -85,45 +144,164 @@
   (true)
 ] @boolean
 
-; Comments (from Lua)
+;; Tables
+
+(field name: (identifier) @field)
+
+(dot_index_expression field: (identifier) @field)
+
+(table_constructor
+[
+  "{"
+  "}"
+] @constructor)
+
+;; Functions
+
+(parameters (identifier) @parameter)
+
+(function_declaration
+  name: [
+    (identifier) @function
+    (dot_index_expression
+      field: (identifier) @function)
+  ])
+
+(function_declaration
+  name: (method_index_expression
+    method: (identifier) @method))
+
+(assignment_statement
+  (variable_list .
+    name: [
+      (identifier) @function
+      (dot_index_expression
+        field: (identifier) @function)
+    ])
+  (expression_list .
+    value: (function_definition)))
+
+(table_constructor
+  (field
+    name: (identifier) @function
+    value: (function_definition)))
+
+(function_call
+  name: [
+    (identifier) @function.call
+    (dot_index_expression
+      field: (identifier) @function.call)
+    (method_index_expression
+      method: (identifier) @method.call)
+  ])
+
+(function_call
+  (identifier) @function.builtin
+  (#any-of? @function.builtin
+    ;; built-in functions in Lua 5.1
+    "assert" "collectgarbage" "dofile" "error" "getfenv" "getmetatable" "ipairs"
+    "load" "loadfile" "loadstring" "module" "next" "pairs" "pcall" "print"
+    "rawequal" "rawget" "rawset" "require" "select" "setfenv" "setmetatable"
+    "tonumber" "tostring" "type" "unpack" "xpcall"))
+
+;; Others
+
 (comment) @comment
+
+(hash_bang_line) @preproc
 
 (number) @number
 
 (string) @string
+
 (escape_sequence) @string.escape
 
-; XMake target definition
-(function_call
-  name: (identifier) @function.definition
-  (#match? @function.definition "^(target|task|rule|package|toolchain|plugin|option)$"))
+;; ---------------------------------------------------------------------------
+;; XMake
+;; ---------------------------------------------------------------------------
 
-; XMake end functions
+;; Block declarations: package/target/option/... open a block, so the grammar
+;; gives them their own node; the opener and its *_end() closer share the
+;; builtin colour so a block reads as one unit.
+(xmake_block
+  name: (xmake_block_name) @function.builtin)
+
+(xmake_block_end) @function.builtin
+
+;; Platform/mode predicates are xmake built-ins rather than ordinary calls.
 (function_call
   name: (identifier) @function.builtin
-  (#match? @function.builtin "^(target_end|option_end|rule_end|task_end|package_end|toolchain_end)$"))
+  (#any-of? @function.builtin
+    "is_plat" "is_arch" "is_mode" "is_kind" "is_host" "is_subhost"
+    "is_config" "has_config" "get_config"))
 
-; XMake function calls as builtin
+;; Method calls (package:config, target:add, ...) use the call colour; the base
+;; query only defines @method.call for them.
 (function_call
-  name: (identifier) @function.builtin
-  (#match? @function.builtin
-    ;; Target APIs
-    "^(set_kind|set_strip|set_enabled|set_default|set_optional|set_visible|set_warnings|set_optimize|set_languages|set_fpmodels|set_symbols|set_basename|set_filename|set_prefixname|set_suffixname|set_extension|set_targetdir|set_objectdir|set_dependir|set_installdir|set_srcdir|add_files|add_headerfiles|add_installfiles|add_generatedfiles|remove_files|add_extrafiles|add_files_if|add_headerfiles_if|add_includedirs|add_sysincludedirs|add_linkdirs|add_frameworkdirs|add_rpathdirs|add_dependirs|add_defines|add_undefines|add_defines_h|add_undefines_h|add_defines_if_ok|add_undefines_if_ok|add_links|add_syslinks|add_frameworks|add_deps|add_packages|add_linkages|add_strongdeps|add_cflags|add_cxxflags|add_ldflags|add_shflags|add_arflags|add_cxflags|add_mflags|add_iflags|add_vexflags|add_asmflags|set_cflags|set_cxxflags|set_ldflags|set_options|add_options|set_showmenu|set_category|set_description|set_values|set_enable|set_required|set_native|add_rules|add_rule|set_rules|set_extensions|add_requires|add_requireconfs|add_require_imports|add_repositories|set_repositories|set_requires|set_requireconfs|set_policy|set_base|set_plat|set_arch|set_modes|set_mode|set_runtimes|set_env|set_runenv|set_safeenv|set_project|set_version|set_xmakever|set_homepage|set_author|set_license|set_pcxxheader|set_pcxxprefix|set_pcheader|set_pchprefix|set_unity|set_unity_size|set_unity_junction|set_linker|add_linkflags|add_installfiles|set_wildcard|set_encrypt|set_encrypt_file|set_installskip|add_tests|set_testconfig|add_testfiles|add_testincludes|add_benchmarks|set_benchconfig|add_benchmarkfiles|set_private|set_public|set_interface|try_add|on_check|before_check|after_check|deprecated|configvar|includes|add_includes|import|include|add_subdirs|add_subfiles|set_configdir|set_rootdir|set_programdir|set_packagedir|set_tmpdir|set_cachedir|set_logdir|set_md5dir|set_sdkdir|set_sysincludedirs|add_sdks|add_vectorexts|set_vectorexts|add_asmflags|add_iflags|add_premacros|add_toolchains|add_toolnames|add_tools|set_toolchains|set_rundir)$"))
+  name: (method_index_expression
+    method: (identifier) @function.call))
 
-; XMake hooks (on_load, on_build, etc.)
+;; Dotted calls (os.cp, path.join, table.insert, ...) as well.
 (function_call
-  name: (identifier) @function.builtin
-  (#match? @function.builtin
-    "^(on_load|on_config|on_prepare|on_prepare_file|on_prepare_files|on_link|on_build|on_build_file|on_build_files|on_clean|on_package|on_install|on_uninstall|on_run|before_load|before_config|before_prepare|before_prepare_file|before_prepare_files|before_link|before_build|before_build_file|before_build_files|before_clean|before_package|before_install|before_uninstall|before_run|after_load|after_config|after_prepare|after_prepare_file|after_prepare_files|after_link|after_build|after_build_file|after_build_files|after_clean|after_package|after_install|after_uninstall|after_run)$"))
+  name: (dot_index_expression
+    field: (identifier) @function.call))
 
-; XMake global modules (os, path, etc.)
+;; xmake's global modules: colour the namespace so "os" does not look like a
+;; free variable next to the function it carries.
 (function_call
-  name: (identifier) @function.builtin
-  (#match? @function.builtin
-    "^(os|path|string|table|math|io|debug|coroutine|hash|utils|linuxos|macos|winos|xmake|core|api|sandbox|print|printf|cprint|pprint|raise|vformat|format|printfrag|is_host|is_plat|is_arch|is_mode|is_kind|is_config|has_config|get_config|config|cli|argparse|template|process|net|http|ping|privilege|sudo|archive|platform|detect|tool|runjobs|jobgraph|jobpool|async)$"))
+  name: (dot_index_expression
+    (identifier) @variable.builtin)
+  (#any-of? @variable.builtin
+    "os" "io" "path" "table" "string" "math" "coroutine" "utf8" "debug"
+    "xmake" "semver" "hash" "utils" "process" "timer" "base64" "csv" "json"
+    "net" "http" "winos" "linuxos" "macos" "privilege" "jobgraph" "jobpool"
+    "async" "sandbox" "config"))
 
-; XMake set_menu and related
+;; Table keys ({headeronly = true}, {optional = true}, ...) are properties.
+(table_constructor
+  (field
+    name: (identifier) @property))
+
+;; Keep the base rule that reads "name = function() end" as a function.
+(table_constructor
+  (field
+    name: (identifier) @function
+    value: (function_definition)))
+
+;; Function parameters, including the hook argument: on_install(function (package)).
+(parameters (identifier) @variable.parameter)
+
+;; Control flow. The base query labels these tokens @conditional, @repeat and
+;; @keyword.return; Zed themes (One Dark Pro Next among them) define none of
+;; those, so the keywords rendered as plain text. Function bodies keep
+;; @keyword.function; everything else takes the keyword colour.
+[
+  "if" "then" "elseif" "else"
+  "for" "while" "do" "repeat" "until"
+  "return"
+] @keyword
+
+(if_statement "end" @keyword)
+(while_statement "end" @keyword)
+(for_statement "end" @keyword)
+(do_statement "end" @keyword)
+
+;; Dot field access (configs.kind) is @field in the base query, which no Zed
+;; theme defines; read it as a property and re-assert call names after it.
+(dot_index_expression
+  field: (identifier) @property)
+
 (function_call
-  name: (identifier) @function.builtin
-  (#match? @function.builtin
-    "^(set_menu|set_core|on_run|before_run|after_run|set_extensions|set_priority|set_properties|set_homepage|set_version|set_license|set_urls|add_sources|set_kind|set_family|set_toolset|on_link|on_install|has_features|has_ctypes|has_cxxtypes|has_cfuncs|has_cxxfuncs|has_cincludes|has_cxxincludes|has_links|check)$"))
+  name: (dot_index_expression
+    field: (identifier) @function.call))
+
+;; Method declarations (function a:b()) are @method in the base query.
+(function_declaration
+  name: (method_index_expression
+    method: (identifier) @function))
+
+;; `package("x") ... end` is not Lua syntax, so tree-sitter keeps the closing
+;; `end` as an error node. Colour it like the `end` of a real block instead of
+;; leaving it looking like an identifier.
+((ERROR (identifier) @keyword.function)
+ (#eq? @keyword.function "end"))
